@@ -1,7 +1,7 @@
-from django.http import JsonResponse
-from streaming_app_backend.mongo_client import sliders_collection, movies_collection
 from bson import ObjectId
-
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from core.database import sliders_collection, movies_collection
 
 def serialize_document(doc):
     """Convert MongoDB document to a JSON serializable dictionary."""
@@ -14,7 +14,7 @@ def serialize_document(doc):
     return doc
 
 
-def getSliders(request):
+async def getSliders(request:Request):
     try:
         # Query all sliders
         sliders = sliders_collection.find(
@@ -47,7 +47,7 @@ def getSliders(request):
                     serialized_sliders.append(serialize_document(sliderData))
                 # print(serialized_sliders)
 
-        return JsonResponse({"sliders": serialized_sliders})
+        return JSONResponse({"sliders": serialized_sliders})
 
     except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
+        return JSONResponse({"error": str(e)}, status=500)

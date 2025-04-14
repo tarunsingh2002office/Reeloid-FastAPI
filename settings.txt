@@ -1,0 +1,189 @@
+# Note ->
+# host: The host is the domain name or IP address where your application is running.
+# Example -> 1 (If your API is hosted at http://api.example.com, the host is api.example.com), 2(If you're running locally, the host might be localhost or 127.0.0.1)
+
+# origin: The origin refers to the combination of [Protocol (e.g., http or https) ,Host (e.g., example.com),Port (e.g., 8000)]
+# Example -> 1 (http://localhost:3000 is an origin.), 2(https://api.example.com:8080 is another origin)
+
+# When a browser makes a request to your API, it includes the origin of the request.
+# If the origin is not allowed by your API, the browser will block the request due to CORS (Cross-Origin Resource Sharing) restrictions.
+
+# In fast api we want to implement 2  thing for cors -> ALLOWED_HOSTS = ["*"] and CORS_ALLOW_ALL_ORIGINS = True
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+BASE_DIR = Path(__file__).resolve().parent.parent
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"
+INSTALLED_APPS = [
+    "corsheaders",
+    "django_celery_beat",
+]
+MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",  # Ensure this is the first middleware
+]
+
+ALLOWED_HOSTS = ["*"]  # Allow all hosts in cors
+#(ALLOWED_HOSTS is a security setting that specifies a list of host/domain names that your Django application can serve.
+#If a request comes from a host not listed in ALLOWED_HOSTS, Django will return a 400 Bad Request error.
+#Example:
+#Setting ALLOWED_HOSTS = ["*"] allows requests from any host, which is typically used during development but is not recommended for production.
+#----------> this thing handled in cors in fastapi
+#)
+CORS_ALLOW_ALL_ORIGINS = True # Allow all origins
+CORS_ALLOW_HEADERS = ["token", "content-type"] # Allow specific headers
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",  # Frontend origin
+    "http://192.168.1.64:8000",  # Backend origin if required
+    "http://127.0.0.1:3000",
+    "http://3.110.39.32:8000",
+]
+
+TEMPLATES = [
+    {
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+            ],
+        },
+    },
+]
+
+'''APPEND_SLASH = True
+(In Django:
+APPEND_SLASH is a setting that automatically appends a trailing slash (/) to URLs if the incoming request doesn't include it.
+For example:
+If APPEND_SLASH = True and a user requests /example, Django will redirect them to /example/.
+This is useful for ensuring consistent URL patterns and avoiding 404 errors due to missing slashes.
+In FastAPI:
+FastAPI does not have an equivalent APPEND_SLASH setting because it strictly matches the defined routes.
+If you define a route as /example/, a request to /example will result in a 404 Not Found error unless you explicitly define both routes (/example and /example/).
+How to Handle This in FastAPI:
+@app.get("/example")
+@app.get("/example/") -> at route
+)'''
+
+# Celery Configuration
+CELERY_BROKER_URL = os.getenv("CELERY_BROKER_URL")
+CELERY_RESULT_BACKEND = MONGODB_URI + "/celery_results"
+
+# Timezone settings
+CELERY_TIMEZONE = "UTC"
+
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = os.getenv("EMAIL_PORT")
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS")
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")  # Replace with your Gmail
+EMAIL_HOST_PASSWORD = os.getenv(
+    "EMAIL_HOST_PASSWORD"
+)  # gmail app passwords not gmail signin password
+
+
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "streaming_app_backend.settings")
+
+What Does This Line Do in Django?
+Purpose:
+This line sets the DJANGO_SETTINGS_MODULE environment variable, which tells Django which settings file to use for the project.
+Django relies on this environment variable to locate and load the settings.py file.
+
+Why Is It Needed?
+Django uses the DJANGO_SETTINGS_MODULE variable to initialize its configuration system.
+Without this, Django won't know where to find the project's settings, and you'll encounter errors when running Django commands or starting the server.
+
+Where Is It Used?
+This line is typically found in:
+manage.py: Used when running commands like python manage.py runserver or python manage.py migrate.
+wsgi.py: Used when deploying the project with WSGI servers like Gunicorn or uWSGI.
+celery.py: Used to ensure Celery tasks have access to Django's settings.
+
+
+Do You Need This in FastAPI?
+No, you do not need this line in FastAPI. Here's why:
+
+FastAPI Does Not Use Django's Settings System:
+
+FastAPI does not rely on a centralized settings.py file like Django. Instead, it uses configuration management libraries like Pydantic to handle settings.
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+in my django project we are not using this async and await request.form ->is this is fro serer side right, if more request comes , the run the the request async and wait for request bok right?
+
+Yes, you are correct! The use of async and await in FastAPI is related to asynchronous programming, which is designed to handle multiple requests more efficiently, 
+especially in I/O-bound operations like database queries, file handling, or network requests.
+
+Asynchronous Programming:
+
+In FastAPI, you can define routes and functions as async def, which allows the server to handle multiple requests concurrently.
+When an await statement is encountered (e.g., await request.form()), the server can pause the execution of that specific request and switch to handling other requests 
+while waiting for the I/O operation to complete.
+How It Works:
+
+When a request comes in, the server starts processing it.
+If the request involves an I/O operation (e.g., reading form data, querying a database, or calling an external API), the server does not block. Instead, it "awaits" 
+the result and moves on to handle other requests.
+Once the awaited operation is complete, the server resumes processing the original request.
+Why It’s Useful:
+
+This approach allows the server to handle many requests simultaneously, making it highly efficient for APIs with high traffic or I/O-heavy operations.
+
+Why Doesn’t Django Use async and await?
+Django’s Traditional Approach:
+
+Django was originally designed as a synchronous framework. In a synchronous model, each request is handled one at a time, and the server waits for each operation
+ (e.g., database query, file read) to complete before moving to the next request.
+This can lead to inefficiencies when handling a large number of concurrent requests, especially if many of them involve I/O operations.
+Django’s Async Support:
+
+Starting with Django 3.1, Django introduced support for asynchronous views and middleware. However, many parts of Django (e.g., ORM, middleware) 
+are still synchronous by default, so you don’t see async and await used as commonly in Django projects.
+
+Why Use await request.form() in FastAPI?
+request.form():
+
+This is an asynchronous method in FastAPI that reads form data from the incoming request.
+Using await ensures that the server does not block while reading the form data, allowing it to handle other requests in the meantime.
+Example:
+
+In Django:
+
+In Django, you would typically use request.POST to access form data, which is a synchronous operation. For example:
+
+Does async and await Help with High Traffic?
+Yes, asynchronous programming is particularly beneficial for handling high traffic because:
+
+Non-Blocking I/O:
+
+When a request involves an I/O operation (e.g., reading form data, querying a database, or calling an external API), the server can handle other 
+requests while waiting for the operation to complete.
+Concurrency:
+
+Multiple requests can be processed concurrently, making the server more efficient and responsive under heavy load.
+Scalability:
+
+Asynchronous programming allows the server to scale better with limited resources, as it can handle more requests with fewer threads or processes.
+5. When Should You Use async and await?
+Use async and await in FastAPI when:
+
+Your route involves I/O-bound operations (e.g., reading form data, querying a database, or calling an external API).
+You want to maximize the performance and scalability of your API.
+You don’t need async and await for CPU-bound operations (e.g., heavy computations), as they don’t benefit from asynchronous programming.
+
+6. Summary
+In FastAPI:
+
+async and await are used to handle requests asynchronously, allowing the server to process multiple requests concurrently.
+For example, await request.form() reads form data without blocking the server.
+In Django:
+
+Django traditionally uses synchronous programming, so you don’t see async and await in most Django projects.
+However, Django has started supporting asynchronous views and middleware in recent versions.
+Benefit of Async in FastAPI:
+
+It improves performance and scalability, especially for APIs with high traffic or I/O-heavy operations.
+So yes, async and await in FastAPI are server-side features that help handle more requests efficiently by not blocking the server while waiting for I/O operations to complete.
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -1,8 +1,8 @@
 from pymongo import MongoClient
-from core.config import settings
+from core.config import db_settings
 
 # Create a MongoDB client
-client = MongoClient(settings.MONGODB_URI)
+client = MongoClient(db_settings.MONGODB_URI)
 
 # Access the default database
 db = client.get_database("testing")  # This uses the default database from the URI

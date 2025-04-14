@@ -16,18 +16,19 @@ from users.views.markAsBookMark import markAsBookMark
 from users.views.getBookMark import getBookMark
 from users.views.likeVideo import likeVideo
 from users.views.getAds import getAds
-from users.views.checkSignedVideo import checkSignedVideo
 from users.views.googleAuth import googleAuth
 from users.views.getPackage import getPackage
 from users.views.fetchWalletPoints import fetchWalletPoints
 from users.views.forgotPassword import forgotPassword
 from users.views.verifyOtp import verifyOtp
 from users.views.updatePassword import updatePassword
+from users.views.getContinueWatchingHistory import getUserWatchHistory
+from users.views.continueWatchingHistory import continueWatchingHistorySaving
 
 user_router = APIRouter(prefix="/user", tags=["Users"])
 
 # User routes
-user_router.add_api_route("/register", createUser, methods=["POST"])
+user_router.add_api_route("/register", createUser, methods=["POST"],summary="Create a new user")
 user_router.add_api_route("/signIn", signIn, methods=["POST"])
 user_router.add_api_route("/genreList", genreList, methods=["GET"])
 user_router.add_api_route("/genreSelector", genreSelection, methods=["POST"])
@@ -50,3 +51,5 @@ user_router.add_api_route("/fetchWallet", fetchWalletPoints, methods=["GET"])
 user_router.add_api_route("/forgotPassword", forgotPassword, methods=["POST"])
 user_router.add_api_route("/verifyOtp", verifyOtp, methods=["POST"])
 user_router.add_api_route("/updatePassword", updatePassword, methods=["POST"])
+user_router.add_api_route("/continueWatching", continueWatchingHistorySaving, methods=["POST"])
+user_router.add_api_route("/getContinueWatching", getUserWatchHistory, methods=["GET"])

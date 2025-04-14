@@ -1,9 +1,7 @@
+import time
 import hashlib
 from django.http import JsonResponse
 from urllib.parse import urlparse
-import time
-import os
-
 
 def checkSignedVideo(url):
     try:
@@ -30,6 +28,4 @@ def checkSignedVideo(url):
         signedUrl = hashlib.md5(conversionStr.encode("utf-8")).hexdigest()
         return f"{url}?t={hex_timestamp}&sign={signedUrl}"
     except Exception as err:
-       
-        return
-        # return JsonResponse({"msg": f"{url}?t={hex_timestamp}&sign={signedUrl}"})
+        return f"error is {err}"

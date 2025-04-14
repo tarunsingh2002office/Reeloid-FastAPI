@@ -1,22 +1,12 @@
-from users.views.checkSignedVideo import checkSignedVideo
-from django.http import JsonResponse
-import json
-from django.views.decorators.csrf import csrf_exempt
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from helper_function.checkSignedVideo import checkSignedVideo
 
+async def refreshTheVideoURL(request:Request):
 
-@csrf_exempt
-def refreshTheVideoURL(request):
-
-    if request.method == "POST":
-
-        try:
-            body = json.loads(request.body)
-
-            data = checkSignedVideo(body.get("url"))
-
-            return JsonResponse({"data": data}, status=200)
-        except Exception as e:
-            return JsonResponse({"err": str(e)}, status=400)
-
-    else:
-        return JsonResponse({"msg": "method not allowed"}, status=500)
+    try:
+        body = await request.body
+        data = checkSignedVideo(body.get("url"))
+        return JSONResponse({"data": data}, status=200)
+    except Exception as e:
+        return JSONResponse({"err": str(e)}, status=400)

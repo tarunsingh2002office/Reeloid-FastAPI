@@ -1,21 +1,18 @@
-from streaming_app_backend.mongo_client import (
+from core.database import (
     videoPurchasedLogs,
     users_collection,
     shorts_collection,
     client,
 )
-from django.http import JsonResponse
-from bson import ObjectId
 import json
-from users.views.checkSignedVideo import checkSignedVideo
-from django.views.decorators.csrf import csrf_exempt
+from bson import ObjectId
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from helper_function.checkSignedVideo import checkSignedVideo
 
+async def purchasePremiumVideo(request:Request):
 
-@csrf_exempt
-def purchasePremiumVideo(request):
-    if request.method == "POST":
-
-        userId = request.userId
+        userId = request.state.userId
 
         session = client.start_session()
         session.start_transaction()
@@ -25,14 +22,13 @@ def purchasePremiumVideo(request):
 
             currentShortsID = bodyData.get("shortsID")
             
-            # verify video is exist or not in database
             shortsData = shorts_collection.find_one(
                 {"_id": ObjectId(currentShortsID)}, session=session
             )
             
             if not shortsData:
                 session.abort_transaction()
-                return JsonResponse({"err": "Invalid shorts Id"})
+                return JSONResponse({"err": "Invalid shorts Id"})
             videosPointsSpend = shortsData.get("purchasePoints") or 1
             purchaseThisShorts = videoPurchasedLogs.insert_one(
                 {
@@ -43,7 +39,7 @@ def purchasePremiumVideo(request):
             )
             if not purchaseThisShorts.acknowledged:
                 session.abort_transaction()
-                return JsonResponse(
+                return JSONResponse(
                     {
                         "err": "unable to purchase the shorts... please try again or contact the customer support team "
                     },
@@ -55,14 +51,14 @@ def purchasePremiumVideo(request):
             )
             if not user:
                 session.abort_transaction()
-                return JsonResponse(
+                return JSONResponse(
                     {"err": "unable to find the user with the given user id "},
                     status=400,
                 )
             userWalletPoints = user.get("allocatedPoints") or 0
             if userWalletPoints < videosPointsSpend:
                 session.abort_transaction()
-                return JsonResponse(
+                return JSONResponse(
                     {
                         "msg": "Not enough mints to purchase this video ...please purchase some mints then try to unlock this Paid features"
                     },
@@ -76,14 +72,14 @@ def purchasePremiumVideo(request):
             
             if updateAllocationPoints.modified_count == 0:
                 session.abort_transaction()
-                return JsonResponse(
+                return JSONResponse(
                     {
                         "err": "problem while updating the allocating points after purchasing the video"
                     },
                     status=400,
                 )
             session.commit_transaction()
-            return JsonResponse(
+            return JSONResponse(
                 {
                     "medium": checkSignedVideo(shortsData.get("medium")),
                     "high": checkSignedVideo(shortsData.get("high")),
@@ -92,8 +88,6 @@ def purchasePremiumVideo(request):
             )
         except Exception as err:
             session.abort_transaction()
-            return JsonResponse({"err": str(err)}, status=400)
+            return JSONResponse({"err": str(err)}, status=400)
         finally:
             session.end_session()
-    else:
-        return JsonResponse({"msg": "Method not allowed"}, status=500)

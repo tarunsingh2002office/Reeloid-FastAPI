@@ -1,93 +1,82 @@
-from django.http import JsonResponse
-from google.oauth2 import id_token
-from google.auth.transport import requests
+import json
 import time
-from streaming_app_backend.mongo_client import users_collection
-from helper_function.tokenCreator import tokenCreator
+from fastapi import Request
+from google.oauth2 import id_token
+from core.config import google_settings
+from core.database import users_collection
+from google.auth.transport import requests
+from fastapi.responses import JSONResponse
+from helper_function.emailSender import emailSender
 from helper_function.saveUserInDataBase import saveUserInDataBase
 from helper_function.updateLoginStatus import updateLoginStatus
-import json
-from django.views.decorators.csrf import csrf_exempt
-from helper_function.emailSender import emailSender
-import os
 
+async def googleAuth(request:Request):
+    try:
+        body = await request.body
+    except json.JSONDecodeError:
+        return JSONResponse({"msg": "Invalid JSON"}, status=400)
+    fcmtoken = body.get("nId")  # notification id
+    deviceType = body.get("deviceType")
 
-@csrf_exempt
-def googleAuth(request):
-    if request.method == "POST":
+    authToken = body.get("authToken")
 
-        try:
-            body = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({"msg": "Invalid JSON"}, status=400)
-        fcmtoken = body.get("nId")  # notification id
-        deviceType = body.get("deviceType")
+    try:
 
-        authToken = body.get("authToken")
+        CLIENT_ID = google_settings.GOOGLE_CLIENT_ID
+        idinfo = id_token.verify_oauth2_token(
+            authToken, requests.Request(), CLIENT_ID
+        )
+        issuer = idinfo.get("iss")
+        expiration_time = idinfo.get("exp")
+        current_time = time.time()
 
-        try:
+        if idinfo and issuer == "https://accounts.google.com":
 
-            CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
-            # CLIENT_ID = "711384080035-g77aj9ec6d0cnqpns28k6jttd16g1g6u.apps.googleusercontent.com"
-            idinfo = id_token.verify_oauth2_token(
-                authToken, requests.Request(), CLIENT_ID
+            if expiration_time < current_time:
+                raise ValueError("token is expired")
+            email = idinfo.get("email")
+            userResponse = users_collection.find_one(
+                {"email": email}, {"password": 0}
             )
+            name = idinfo.get("name")
 
-            issuer = idinfo.get("iss")
-            expiration_time = idinfo.get("exp")
-            current_time = time.time()
+            if userResponse:
 
-            if idinfo and issuer == "https://accounts.google.com":
+                updatedUserResponse, token = updateLoginStatus(
+                    userResponse, fcmtoken, deviceType
+                )
 
-                if expiration_time < current_time:
-                    raise ValueError("token is expired")
-                email = idinfo.get("email")
-                userResponse = users_collection.find_one(
+                return JSONResponse(
+                    {
+                        "msg": "google authentication done......user is already registered with us",
+                        "userData": updatedUserResponse,
+                        "token": token,
+                    }
+                )
+            else:
+
+                password = ""
+                saveUserInDataBase(
+                    {"name": name, "email": email, "password": password}
+                )
+                getSavedUser = users_collection.find_one(
                     {"email": email}, {"password": 0}
                 )
-                name = idinfo.get("name")
-
-                if userResponse:
-
+                # print("get",getSavedUser)
+                if getSavedUser:
                     updatedUserResponse, token = updateLoginStatus(
-                        userResponse, fcmtoken, deviceType
+                        getSavedUser, fcmtoken, deviceType
                     )
-
-                    return JsonResponse(
+                    emailSender({"name": name, "email": email, "type": "direct"})
+                    return JSONResponse(
                         {
-                            "msg": "google authentication done......user is already registered with us",
+                            "msg": "google authentication done......registered a new account",
                             "userData": updatedUserResponse,
                             "token": token,
                         }
                     )
-                else:
+        else:
+            raise ValueError("Invalid Token or issuer")
 
-                    password = "hexagonal"
-                    saveUserInDataBase(
-                        {"name": name, "email": email, "password": password}
-                    )
-                    getSavedUser = users_collection.find_one(
-                        {"email": email}, {"password": 0}
-                    )
-                    print("get",getSavedUser)
-                    if getSavedUser:
-                        updatedUserResponse, token = updateLoginStatus(
-                            getSavedUser, fcmtoken, deviceType
-                        )
-                        # token = tokenCreator({"id": str(getSavedUser.get("_id"))})
-                        emailSender({"name": name, "email": email, "type": "direct"})
-                        return JsonResponse(
-                            {
-                                "msg": "google authentication done......registered a new account",
-                                "userData": updatedUserResponse,
-                                "token": token,
-                            }
-                        )
-            else:
-                raise ValueError("Invalid Token or issuer")
-
-        except Exception as err:
-            print(err)
-            return JsonResponse({"msg": str(err), "err": str(err)}, status=400)
-    else:
-        return JsonResponse({"msg": "method not allowed"}, status=500)
+    except Exception as err:
+        return JSONResponse({"msg": str(err), "err": str(err)}, status=400)

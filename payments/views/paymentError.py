@@ -1,29 +1,23 @@
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from streaming_app_backend.mongo_client import paidMintsBuyerCollection
 import os
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from core.database import paidMintsBuyerCollection
 
+async def paymentError(request: Request):
+    
+    # Extract form data
+    form_data = await request.form()
+    txnid = form_data.get("txnid")
+    mihpayid = form_data.get("mihpayid", "")
+    bank_ref_num = form_data.get("bank_ref_num", "")
+    paymentMode = form_data.get("mode", "")
+    netAmountDeducted = form_data.get("net_amount_debit", "")
+    paymentGateway = form_data.get("PG_TYPE", "")
+    paymentAggregator = form_data.get("pa_name", "")
+    error_message = form_data.get("error_Message", "Payment Failed")
 
-@csrf_exempt
-def paymentError(request):
-
-    PAYU_KEY = os.getenv("PAYU_KEY")
-    PAYU_SALT = os.getenv("PAYU_SALT")
-    txnid = request.POST.get("txnid")
-    headers = {"key": PAYU_KEY, "command": "verify_payment"}
-    mihpayid = request.POST.get("mihpayid") or ""
-    bank_ref_num = request.POST.get("bank_ref_num") or ""
-
-    paymentMode = request.POST.get("mode") or ""
-
-    netAmountDeducted = request.POST.get("net_amount_debit") or ""
-    paymentGateway = request.POST.get("PG_TYPE") or ""
-    paymentAggregator = request.POST.get("pa_name") or ""
-    error_message = request.POST.get("error_Message", "Payment Failed")
     try:
-
-        # reqData = requests.post("https://test.payu.in/merchant/postservice.php?form=2")
-        # print(reqData)
+        # Update the database
         paidMintsPlan = paidMintsBuyerCollection.find_one_and_update(
             {"txnid": str(txnid)},
             {
@@ -41,11 +35,12 @@ def paymentError(request):
                 }
             },
         )
-
-        return JsonResponse(
+        if not paidMintsPlan:
+            raise Exception("Transaction ID not found in database.")
+        
+        return JSONResponse(
             {"msg": "payment Failed", "txnid": txnid, "error_message": error_message},
-            status=200,
+            status_code=200,
         )
     except Exception as err:
-        # session.abort_transaction()
-        return JsonResponse({"msg": str(err)}, status=400)
+        return JSONResponse({"msg": str(err)}, status_code=400)
