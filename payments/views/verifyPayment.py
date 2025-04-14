@@ -1,7 +1,7 @@
 import hashlib
 import requests
 from fastapi import Request
-from core.config import PAYUSettings
+from core.config import payu_settings
 from fastapi.responses import JSONResponse
 
 async def verifyPayment(request: Request):
@@ -15,8 +15,8 @@ async def verifyPayment(request: Request):
             return JSONResponse({"msg": "Transaction ID is required"}, status_code=400)
 
         # PayU Merchant Credentials
-        PAYU_KEY = PAYUSettings.PAYU_KEY
-        PAYU_SALT = PAYUSettings.PAYU_SALT
+        PAYU_KEY = payu_settings.PAYU_KEY
+        PAYU_SALT = payu_settings.PAYU_SALT
 
         # API Endpoint for Payment Verification (Use Live URL in Production)
         PAYU_VERIFY_URL = "https://test.payu.in/merchant/postservice?form=2"

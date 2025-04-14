@@ -1,6 +1,5 @@
 import time
 import hashlib
-from django.http import JsonResponse
 from urllib.parse import urlparse
 
 def checkSignedVideo(url):

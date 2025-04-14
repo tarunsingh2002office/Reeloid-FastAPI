@@ -6,11 +6,11 @@ from fastapi import Request
 from datetime import datetime
 from fastapi.responses import JSONResponse
 from core.database import paidMintsBuyerCollection, mintsPlanCollection
-from core.config import PAYUSettings
+from core.config import payu_settings
 # Load environment variables
-PAYU_KEY = PAYUSettings.PAYU_KEY
-PAYU_SALT = PAYUSettings.PAYU_SALT
-PAYU_URL = PAYUSettings.PAYU_URL
+PAYU_KEY = payu_settings.PAYU_KEY
+PAYU_SALT = payu_settings.PAYU_SALT
+PAYU_URL = payu_settings.PAYU_URL
 
 
 def generate_hash(data):

@@ -7,23 +7,25 @@ class BaseAppSettings(BaseSettings):
     MEDIA_ROOT: Path = BASE_DIR / "media"
     STATIC_URL: str = "static/"
 
+    class Config:
+        env_file = ".env"
+        extra = "ignore"  # Ignore extra fields in the .env file
+
+
 class DatabaseSettings(BaseSettings):
     MONGODB_URI: str
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra fields in the .env file
 
 class CelerySettings(BaseSettings):
     CELERY_BROKER_URL: str
-    CELERY_RESULT_BACKEND: str
     CELERY_TIMEZONE: str = "UTC"
-
-    @property
-    def result_backend(self):
-        return f"{self.CELERY_RESULT_BACKEND}/celery_results"
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra fields in the .env file
 
 class EmailSettings(BaseSettings):
     EMAIL_HOST: str = "smtp.gmail.com"
@@ -34,6 +36,7 @@ class EmailSettings(BaseSettings):
 
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra fields in the .env file
 
 class AppSettings(BaseSettings):
     CELERY_BROKER_URL: str
@@ -43,20 +46,26 @@ class AppSettings(BaseSettings):
     EMAIL_HOST_PASSWORD: str
 
     class Config:
-        env_file = ".env"  # Specify the .env file location
+        env_file = ".env"
+        extra = "ignore"  # Ignore extra fields in the .env file
+
 
 class JWTSettings(BaseSettings):
     SUGAR_VALUE: str
     
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra fields in the .env file
+
 
 class GoogleAuthSettings(BaseSettings):
     GOOGLE_CLIENT_ID: str
     # GOOGLE_CLIENT_SECRET: str
 
-    class Config:    
+    class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra fields in the .env file
+
 
 class PAYUSettings(BaseSettings):
     PAYU_URL: str
@@ -64,6 +73,8 @@ class PAYUSettings(BaseSettings):
     PAYU_KEY: str
     class Config:
         env_file = ".env"
+        extra = "ignore"  # Ignore extra fields in the .env file
+
 
 # Instantiate settings
 base_settings = BaseAppSettings()
@@ -73,6 +84,7 @@ email_settings = EmailSettings()
 app_settings = AppSettings()
 jwt_settings = JWTSettings()
 google_settings = GoogleAuthSettings()
+payu_settings = PAYUSettings()
 
 # if __name__ == "__main__":
 #     print(base_settings.BASE_DIR)
