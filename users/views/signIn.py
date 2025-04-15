@@ -1,19 +1,24 @@
 import json
 from datetime import datetime
+from fastapi import Request, Body
 from fastapi.responses import JSONResponse
 from core.database import users_collection
 from helper_function.verifyPassword import verifyPassword
 from helper_function.updateLoginStatus import updateLoginStatus
-from core.apis_requests import SignInRequest
 
 # Utility function to handle datetime serialization
 def serialize_datetime(obj):
     if isinstance(obj, datetime):
         return obj.isoformat()
     return obj
-async def signIn(request: SignInRequest):
+async def signIn(request: Request,body: dict = Body(
+        example={
+            "email": "a@gmail.com",
+            "password": "1234",
+        }
+    )):
     try:
-        body = request.model_dump()
+        body = await request.json()
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
     email = body.get("email")

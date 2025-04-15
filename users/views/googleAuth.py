@@ -1,6 +1,7 @@
 import json
 import time
 from google.oauth2 import id_token
+from fastapi import Request, Body
 from core.config import google_settings
 from core.database import users_collection
 from google.auth.transport import requests
@@ -8,11 +9,16 @@ from fastapi.responses import JSONResponse
 from helper_function.emailSender import emailSender
 from helper_function.saveUserInDataBase import saveUserInDataBase
 from helper_function.updateLoginStatus import updateLoginStatus
-from core.apis_requests import GoogleAuthRequest
 
-async def googleAuth(request:GoogleAuthRequest):
+async def googleAuth(request:Request,body: dict = Body(
+        example={
+            "fcmtoken":"1234",
+            "deviceType": "web",
+            "authToken":"1234"
+        }
+    )):
     try:
-        body = request.model_dump()
+        body = await request.json()
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
     fcmtoken = body.get("nId")  # notification id

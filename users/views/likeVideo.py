@@ -1,16 +1,21 @@
 import json
 from bson import ObjectId
-from fastapi import Request,Depends
+from fastapi import Request,Depends, Body
 from fastapi.responses import JSONResponse
 from core.database import (
     users_collection,
     userReactionLogs,
     shorts_collection,
 )
-from core.apis_requests import LikeVideoRequest,get_current_user
+from helper_function.apis_requests import get_current_user
 
-async def likeVideo(request:LikeVideoRequest,token: str = Depends(get_current_user)):
-        body = request.model_dump()
+async def likeVideo(request:Request,token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "shortsId": "1234",
+            "reactionType": "Laugh"
+        },
+    )):
+        body = await request.json()
         userId = request.state.userId
         shortsId = body.get("shortsId")
         reactionType = body.get("reactionType")

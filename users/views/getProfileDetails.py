@@ -1,7 +1,7 @@
 from bson import ObjectId
 from fastapi import Request,Depends
 from fastapi.responses import JSONResponse
-from core.apis_requests import get_current_user
+from helper_function.apis_requests import get_current_user
 from core.database import users_collection,genre_collection,languages_collection
 
 async def getProfileDetails(request:Request,token: str = Depends(get_current_user)):

@@ -1,6 +1,6 @@
 import json
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends, Request, Body
 from datetime import datetime
 from fastapi.responses import JSONResponse
 from core.database import (
@@ -9,12 +9,17 @@ from core.database import (
     client,
 )
 from helper_function.addPointsToProfile import addPointsToProfile
-from core.apis_requests import CollectCheckInPointRequest, get_current_user
+from helper_function.apis_requests import get_current_user
 
-async def collectCheckInPoint(request:CollectCheckInPointRequest,
-                              token: str = Depends(get_current_user)):
+async def collectCheckInPoint(request:Request,
+                              token: str = Depends(get_current_user)
+                              ,body: dict = Body(
+        example={
+            "taskId": "1234"
+        }
+    )):
     try:
-        body = request.model_dump()
+        body = await request.json()
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON format"}, status_code=400)
     session = None

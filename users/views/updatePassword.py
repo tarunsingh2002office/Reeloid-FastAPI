@@ -1,13 +1,18 @@
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends, Request, Body
 from fastapi.responses import JSONResponse
 from datetime import timedelta, datetime, timezone
 from helper_function.passwordEncryption import passwordEncryption
 from core.database import forgotPasswordRequests, users_collection
 from helper_function.updatedPasswordConfirmation import updatedPasswordConfirmation
-from core.apis_requests import UpdatePasswordRequest, get_current_user
-async def updatePassword(request:UpdatePasswordRequest,token: str = Depends(get_current_user)):
-    body = request.model_dump()
+from helper_function.apis_requests import  get_current_user
+async def updatePassword(request:Request,token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "password": "1234",
+            "confirmPassword": "1234"
+        },
+    )):
+    body = await request.json()
     userId = request.state.userId
     passwordRequestId = request.state.otpId
     

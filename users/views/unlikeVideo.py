@@ -1,16 +1,15 @@
 from fastapi.responses import JSONResponse
-import json
 from bson import ObjectId
 from core.database import (
     userReactionLogs,
     users_collection,
 )
-from fastapi import Depends
-from core.apis_requests import get_current_user, LikeVideoRequest
+from fastapi import Depends,Request
+from helper_function.apis_requests import get_current_user
 
-async def unlikeVideo(request:LikeVideoRequest, token: str = Depends(get_current_user)):
+async def unlikeVideo(request:Request, token: str = Depends(get_current_user)):
     
-    body = request.model_dump()
+    body = await request.json()
     userId = request.state.userId
     shortsId = body.get("shortsId")
     if not shortsId:

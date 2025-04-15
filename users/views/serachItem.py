@@ -1,9 +1,9 @@
 from fastapi import Request, Depends
 from fastapi.responses import JSONResponse
 from core.database import movies_collection
-from core.apis_requests import get_current_user
+from helper_function.apis_requests import get_current_user
 async def serachItem(request: Request,token: str = Depends(get_current_user)):
-    searchedItem = request.model_dump()
+    searchedItem = await request.json()
     if not searchedItem:
         return JSONResponse(
             {"msg": "searched item is invalid", "status": False}, status_code=404

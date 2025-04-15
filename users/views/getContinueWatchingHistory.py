@@ -3,7 +3,7 @@ from fastapi import Request
 from fastapi import Depends
 from fastapi.responses import JSONResponse
 from core.database import users_collection,continueWatching
-from core.apis_requests import get_current_user
+from helper_function.apis_requests import get_current_user
 
 
 async def getUserWatchHistory(request:Request,token: str = Depends(get_current_user)):

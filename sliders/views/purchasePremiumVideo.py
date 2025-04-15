@@ -4,13 +4,16 @@ from core.database import (
     shorts_collection,
     client,
 )
-import json
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends, Request, Body
 from fastapi.responses import JSONResponse
 from helper_function.checkSignedVideo import checkSignedVideo
-from core.apis_requests import get_current_user, PurchasePremiumVideoRequest
-async def purchasePremiumVideo(request:PurchasePremiumVideoRequest, token: str = Depends(get_current_user)):
+from helper_function.apis_requests import get_current_user
+async def purchasePremiumVideo(request:Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "shortsID": "1234"
+        }
+    )):
 
         userId = request.state.userId
 
@@ -18,7 +21,7 @@ async def purchasePremiumVideo(request:PurchasePremiumVideoRequest, token: str =
         session.start_transaction()
         try:
             
-            bodyData = request.model_dump()
+            bodyData = await request.json()
 
             currentShortsID = bodyData.get("shortsID")
             

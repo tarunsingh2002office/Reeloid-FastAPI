@@ -2,7 +2,7 @@ from bson import ObjectId
 from fastapi import Request, Depends
 from fastapi.responses import JSONResponse
 from core.database import users_collection
-from core.apis_requests import get_current_user
+from helper_function.apis_requests import get_current_user
 async def fetchWalletPoints(request:Request, token: str = Depends(get_current_user)):
     userId = request.state.userId
     userData = users_collection.find_one(

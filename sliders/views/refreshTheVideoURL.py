@@ -1,11 +1,15 @@
-from fastapi import Depends
+from fastapi import Depends, Request, Body
 from fastapi.responses import JSONResponse
 from helper_function.checkSignedVideo import checkSignedVideo
-from core.apis_requests import get_current_user, RefreshTheVideoURLRequest
-async def refreshTheVideoURL(request:RefreshTheVideoURLRequest, token: str = Depends(get_current_user)):
+from helper_function.apis_requests import get_current_user
+async def refreshTheVideoURL(request:Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "url": "https://abc.com"
+        }
+    )):
 
     try:
-        body = request.model_dump()
+        body = await request.json()
         data = checkSignedVideo(body.get("url"))
         return JSONResponse({"data": data}, status_code=200)
     except Exception as e:

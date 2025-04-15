@@ -1,11 +1,14 @@
+from fastapi import Request, Body
 from fastapi.responses import JSONResponse
 from core.database import forgotPasswordRequests
 from datetime import datetime, timedelta, timezone
 from helper_function.tokenCreator import tokenCreator
-from core.apis_requests import VerifyOtpRequest
-async def verifyOtp(request:VerifyOtpRequest):
-    body = request.model_dump()
-
+async def verifyOtp(request:Request, body: dict = Body(
+        example={
+            "otp": "1234"
+        },
+    )):
+    body = await request.json()
     otp = body.get("otp")  # this is the request for getting already created otp
     try:
         fifteen_min_ago = datetime.now(timezone.utc) - timedelta(minutes=15)

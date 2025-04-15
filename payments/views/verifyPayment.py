@@ -1,9 +1,13 @@
 import hashlib
 import requests
+from fastapi import Request, Body
 from core.config import payu_settings
 from fastapi.responses import JSONResponse
-from core.apis_requests import VerifyPaymentRequest
-async def verifyPayment(request: VerifyPaymentRequest):
+async def verifyPayment(request: Request,body: dict = Body(
+        example={
+            "txnid": "1234"
+        }
+    )):
     """Verify payment using PayU API"""
     try:
         # Parse JSON body

@@ -1,11 +1,20 @@
-from fastapi import Depends
+from fastapi import Depends, Body, Request
 from fastapi.responses import JSONResponse
-from core.apis_requests import get_current_user
-from core.apis_requests import PaymentSuccessRequest
+from helper_function.apis_requests import get_current_user
 from core.database import paidMintsBuyerCollection, client
 from helper_function.addPointsToProfile import addPointsToProfile
 
-async def paymentSuccess(request: PaymentSuccessRequest, token: str = Depends(get_current_user)):
+async def paymentSuccess(request: Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "txnid": "12334",
+            "mihpayid": "12334",
+            "bank_ref_num": "12334",
+            "mode": "12334",
+            "net_amount_debit": "12334",
+            "PG_TYPE": "12334",
+            "pa_name": "12334",
+        }
+    )):
     # Extract form data
     form_data = await request.form()
     txnid = form_data.get("txnid")

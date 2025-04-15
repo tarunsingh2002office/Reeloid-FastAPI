@@ -1,13 +1,20 @@
 import json
+from fastapi import Request,Body
 from fastapi.responses import JSONResponse
-from core.apis_requests import CreateUserRequest
 from core.database import users_collection, client
 from helper_function.emailSender import emailSender
 from helper_function.saveUserInDataBase import saveUserInDataBase
 
-async def createUser(request: CreateUserRequest):
+async def createUser(request: Request,body: dict = Body(
+        example={
+            "email": "a@gmail.com",
+            "name": "Mr. a",    
+            "password": "1234",
+            "confirmPassword": "1234",
+        }
+    )):
     try:
-        body =  request.model_dump()
+        body =  await request.json()
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
     

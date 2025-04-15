@@ -2,12 +2,12 @@ import time
 import random
 import hashlib
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends, Request, Body
 from datetime import datetime
 from fastapi.responses import JSONResponse
 from core.database import paidMintsBuyerCollection, mintsPlanCollection
 from core.config import payu_settings
-from core.apis_requests import PaymentUrlGenerationRequest, get_current_user
+from helper_function.apis_requests import get_current_user
 # Load environment variables
 PAYU_KEY = payu_settings.PAYU_KEY
 PAYU_SALT = payu_settings.PAYU_SALT
@@ -20,7 +20,15 @@ def generate_hash(data):
     return hashlib.sha512(hash_string.encode()).hexdigest()
 
 
-async def paymentUrlGeneration(request: PaymentUrlGenerationRequest, token: str = Depends(get_current_user)):
+async def paymentUrlGeneration(request: Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "email": "a@gmail.com",
+            "phone": "1234567890",
+            "firstname": "Mr. a",
+            "productinfo": "Mint plan 1",
+            "pid": "12334"
+        }
+    )):
     """Generate PayU Payment Request"""
     try:
         # Parse JSON body

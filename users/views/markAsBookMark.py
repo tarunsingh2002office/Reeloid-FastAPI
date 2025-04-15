@@ -1,11 +1,16 @@
 import json
 from bson import ObjectId
 from fastapi import Depends
+from fastapi import Request,Body
 from fastapi.responses import JSONResponse
 from core.database import users_collection
-from core.apis_requests import get_current_user,MarkAsBookMarkRequest
-async def markAsBookMark(request:MarkAsBookMarkRequest,token: str = Depends(get_current_user)):
-    body = request.model_dump()
+from helper_function.apis_requests import get_current_user
+async def markAsBookMark(request: Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "shortsId": "1234"
+        },
+    )):
+    body = await request.json()
     userId = request.state.userId
     shortsId = body.get("shortsId")
 

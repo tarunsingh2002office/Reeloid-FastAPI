@@ -1,20 +1,23 @@
-import json
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends, Request, Body
 from fastapi.responses import JSONResponse
 from core.database import (
     movies_collection,
     shorts_collection,
     users_collection,
-    userReactionLogs,
+    userReactionLogs
 )
 from helper_function.checkSignedVideo import checkSignedVideo
 from helper_function.checkPurchasedVideoData import checkPurchasedVideoData
-from core.apis_requests import get_current_user, GetMovieDataRequest
-async def getMovieData(request:GetMovieDataRequest, token: str = Depends(get_current_user)):
+from helper_function.apis_requests import get_current_user
+async def getMovieData(request:Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "movieID": "1234"
+        }
+    )):
     userId = request.state.userId
     try:
-        bodyData = request.model_dump()
+        bodyData = await request.json()
 
         movieID = bodyData.get("movieID")
 

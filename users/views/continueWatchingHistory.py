@@ -1,17 +1,23 @@
 
 import json
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends,Request,Body
 from fastapi.responses import JSONResponse
 from core.database import (
     users_collection,
     movies_collection,
     continueWatching,
 )
-from core.apis_requests import get_current_user,ContinueWatchingHistorySavingRequest
-async def continueWatchingHistorySaving(request:ContinueWatchingHistorySavingRequest,token: str = Depends(get_current_user)):
+from helper_function.apis_requests import get_current_user
+async def continueWatchingHistorySaving(request:Request,token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "moviesId": "1234",
+            "currentShortsId": "1234",
+            "timestamp": "1234",
+        }
+    )):
     try:
-        body = request.model_dump()
+        body = await request.json()
         moviesId = body.get("moviesId")
         currentShortsId = body.get("currentShortsId")
         timestamp = body.get("timestamp")

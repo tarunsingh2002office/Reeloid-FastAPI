@@ -1,12 +1,19 @@
 import json
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends, Request
 from fastapi.responses import JSONResponse
 from core.database import users_collection
-from core.apis_requests import EditProfileDetailsRequest, get_current_user
-async def editProfileDetails(request:EditProfileDetailsRequest, token: str = Depends(get_current_user)):
+from helper_function.apis_requests import  get_current_user
+async def editProfileDetails(request: Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "name": "Mr. a",
+            "email": "a@gmailcom",
+            "gender": "male",
+            "mobile": "1234567890"
+        }
+    )):
     try:
-        body = request.model_dump()
+        body = await request.json()
         email = body.get("email")
         name = body.get("name")
         gender = body.get("gender")

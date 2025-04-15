@@ -1,5 +1,6 @@
 import json
 import random
+from fastapi import Request, Body
 from datetime import datetime, timezone
 from fastapi.responses import JSONResponse
 from datetime import timedelta
@@ -8,14 +9,17 @@ from core.database import (
     users_collection,
     client,
 )
-from core.apis_requests import forgotPasswordAPIRequests 
 from helper_function.forgotPasswordEmailSender import forgotPasswordEmailSender
 
-async def forgotPassword(request:forgotPasswordAPIRequests):
+async def forgotPassword(request:Request,body: dict = Body(
+        example={
+            "email": "a@gmail.com",
+        },
+    )):
     session = None
     try:
         # Parse JSON data from request body
-        data = request.model_dump()
+        data = await request.json()
         #json.loads(request.body)
         email = data.get("email")
         # user_id = request.state.userId  # Extract userId from request body

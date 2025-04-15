@@ -1,13 +1,17 @@
 import json
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends,Request,Body
 from fastapi.responses import JSONResponse
 from core.database import users_collection, genre_collection
-from core.apis_requests import GenreSelectionRequest, get_current_user
-async def genreSelection(request:GenreSelectionRequest, token: str = Depends(get_current_user)):
+from helper_function.apis_requests import get_current_user
+async def genreSelection(request:Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "selectedGenre": ["1234", "2345"]
+        }
+    )):
 
     try:
-        body = request.model_dump()
+        body = await request.json()
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
     selectedGenre = body.get(
@@ -38,7 +42,6 @@ async def genreSelection(request:GenreSelectionRequest, token: str = Depends(get
         {"$set": {"selectedGenre": afterRemovingWrongGenre}},
     )
     if updatedData:
-        # validUser["selectedGenre"] = selectedGenre
         return JSONResponse(
             {
                 "msg": "successfully selected the genre  ",

@@ -1,12 +1,14 @@
 from fastapi.responses import JSONResponse
-import json
 from core.database import users_collection, shorts_collection
 from bson import ObjectId
-from fastapi import Request, Depends
-from core.apis_requests import get_current_user, GetLikedVideoRequest
-
-async def getLikedVideo(request:GetLikedVideoRequest,token: str = Depends(get_current_user)):
-    body =  request.model_dump()
+from fastapi import Request, Depends, Body
+from helper_function.apis_requests import get_current_user
+async def getLikedVideo(request:Request,token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "shortsId": ["1234","23456"]
+        }
+    )):
+    body =  await request.json()
     userId = request.state.userId
     shortsId = body.get("shortsId")
     user = users_collection.find_one(

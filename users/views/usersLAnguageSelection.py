@@ -1,12 +1,16 @@
 import json
 from bson import ObjectId
-from fastapi import Depends
+from fastapi import Depends, Request, Body
 from fastapi.responses import JSONResponse
 from core.database import languages_collection, users_collection
-from core.apis_requests import get_current_user, UsersLanguaseSelectionRequest
-async def usersLanguaseSelection(request:UsersLanguaseSelectionRequest,token:str=Depends(get_current_user)):
+from helper_function.apis_requests import get_current_user
+async def usersLanguaseSelection(request:Request,token:str=Depends(get_current_user),body: dict = Body(
+        example={
+            "selectedLanguages": ["12344","123456"]
+        }
+    )):
     try:
-        body = request.model_dump()
+        body = await request.json()
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
     selectedLanguages = body.get("selectedLanguages")

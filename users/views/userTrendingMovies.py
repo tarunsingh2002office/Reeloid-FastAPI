@@ -1,7 +1,7 @@
 from fastapi import Request,Depends
 from fastapi.responses import JSONResponse
 from core.database import movies_collection
-from core.apis_requests import get_current_user
+from helper_function.apis_requests import get_current_user
 async def UserTrendingVideos(request:Request,token: str = Depends(get_current_user)):
     trending_movies = (
         movies_collection.find({}, {"_id": 1, "name": 1, "fileLocation": 1})
