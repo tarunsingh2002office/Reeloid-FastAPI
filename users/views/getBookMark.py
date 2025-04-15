@@ -3,6 +3,7 @@ from bson import ObjectId
 from fastapi.responses import JSONResponse
 from helper_function.apis_requests import get_current_user
 from core.database import users_collection, shorts_collection
+from helper_function.serialize_mongo_document import serialize_document
 
 async def getBookMark(request:Request, token: str = Depends(get_current_user)):
 
@@ -32,8 +33,9 @@ async def getBookMark(request:Request, token: str = Depends(get_current_user)):
                         )
 
                         if shortsData:
-                            shortsData["_id"] = str(shortsData["_id"])
-                            bookMarkData.append(shortsData)
+                            serialized_shortsData = serialize_document(shortsData)
+                            bookMarkData.append(serialized_shortsData)
+
 
             return JSONResponse(
                 {"msg": "bookmarked data is here", "bookMarkData": bookMarkData},

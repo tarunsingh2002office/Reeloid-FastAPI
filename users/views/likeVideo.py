@@ -12,7 +12,7 @@ from helper_function.apis_requests import get_current_user
 async def likeVideo(request:Request,token: str = Depends(get_current_user),body: dict = Body(
         example={
             "shortsId": "1234",
-            "reactionType": "Laugh"
+            "reactionType": "Laugh || Heart || Sad || Ovation || Clap"
         },
     )):
         body = await request.json()

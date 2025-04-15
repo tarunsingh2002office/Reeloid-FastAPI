@@ -1,8 +1,8 @@
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.responses import JSONResponse
 from core.database import mintsPlanCollection
-
-async def getPackage(request:Request):
+from helper_function.apis_requests import get_current_user
+async def getPackage(request:Request, token: str = Depends(get_current_user)):
     try:
         mintsPlanResponse = mintsPlanCollection.find()
         

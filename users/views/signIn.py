@@ -23,8 +23,8 @@ async def signIn(request: Request,body: dict = Body(
         return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
     email = body.get("email")
     password = body.get("password") 
-    fcmtoken = body.get("nId") or "" # notification id
-    deviceType = body.get("deviceType") or ""
+    fcmtoken = body.get("nId")  # notification id
+    deviceType = body.get("deviceType") 
 
     if not email:
         return JSONResponse({"msg": "email is not present"}, status_code=400)

@@ -1,8 +1,9 @@
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.responses import JSONResponse
+from helper_function.apis_requests import get_current_user
 from core.database import layouts_collection, movies_collection
 
-def getLayouts(request:Request):
+def getLayouts(request:Request,token: str = Depends(get_current_user)):
 
     layoutsResult = layouts_collection.find(
         {"visible": True}, {"_id": 1, "linkedMovies": 1, "name": 1}
