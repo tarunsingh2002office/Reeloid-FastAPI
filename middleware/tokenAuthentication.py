@@ -16,11 +16,11 @@ class AccessTokenAuthenticatorMiddleware(BaseHTTPMiddleware):
             "/user/signIn/",
             "/user/register/",
             "/user/googleAuth/",
-            "/swagger/",
-            "/swagger-ui/",
-            "/redoc/",
-            "/swagger.json",
-            "/swagger.yaml",
+            # "/swagger/",
+            # "/swagger-ui/",
+            # # "/redoc/",
+            # "/swagger.json",
+            # "/swagger.yaml",
             "/docs",  # Add FastAPI's Swagger UI
             "/redoc",  # Add FastAPI's ReDoc UI
             "/openapi.json"
