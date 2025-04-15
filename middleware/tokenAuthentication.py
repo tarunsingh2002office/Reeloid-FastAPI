@@ -21,6 +21,9 @@ class AccessTokenAuthenticatorMiddleware(BaseHTTPMiddleware):
             "/redoc/",
             "/swagger.json",
             "/swagger.yaml",
+            "/docs",  # Add FastAPI's Swagger UI
+            "/redoc",  # Add FastAPI's ReDoc UI
+            "/openapi.json"
         ]
 
         # Check if the request path is in the excluded list
