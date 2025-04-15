@@ -1,9 +1,16 @@
 import json
+from datetime import datetime
 from fastapi.responses import JSONResponse
 from core.database import users_collection
 from helper_function.verifyPassword import verifyPassword
 from helper_function.updateLoginStatus import updateLoginStatus
 from core.apis_requests import SignInRequest
+
+# Utility function to handle datetime serialization
+def serialize_datetime(obj):
+    if isinstance(obj, datetime):
+        return obj.isoformat()
+    return obj
 async def signIn(request: SignInRequest):
     try:
         body = request.model_dump()
@@ -45,6 +52,10 @@ async def signIn(request: SignInRequest):
             del userResponse["password"]
             updatedUserResponse, token = updateLoginStatus(
                 userResponse, fcmtoken, deviceType
+            )
+            # Serialize datetime fields in the response
+            updatedUserResponse = json.loads(
+                json.dumps(updatedUserResponse, default=serialize_datetime)
             )
             return JSONResponse(
                 {
