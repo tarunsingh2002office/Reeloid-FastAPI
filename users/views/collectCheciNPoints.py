@@ -1,6 +1,6 @@
 import json
 from bson import ObjectId
-from fastapi import Request
+from fastapi import Depends
 from datetime import datetime
 from fastapi.responses import JSONResponse
 from core.database import (
@@ -9,21 +9,23 @@ from core.database import (
     client,
 )
 from helper_function.addPointsToProfile import addPointsToProfile
+from core.apis_requests import CollectCheckInPointRequest, get_current_user
 
-async def collectCheckInPoint(request:Request):
+async def collectCheckInPoint(request:CollectCheckInPointRequest,
+                              token: str = Depends(get_current_user)):
     try:
-        body = await request.body
+        body = request.model_dump()
     except json.JSONDecodeError:
-        return JSONResponse({"msg": "Invalid JSON format"}, status=400)
+        return JSONResponse({"msg": "Invalid JSON format"}, status_code=400)
     session = None
     try:
         taskId = body.get("taskId")
         userId = request.state.userId
 
         if not taskId:
-            return JSONResponse({"msg": "No Task Id Is present"}, status=404)
+            return JSONResponse({"msg": "No Task Id Is present"}, status_code=404)
         if not userId:
-            return JSONResponse({"msg": "Invalid user "}, status=404)
+            return JSONResponse({"msg": "Invalid user "}, status_code=404)
         # Try to update the task status to "Completed"
         current_date_str = datetime.today().strftime("%d/%m/%Y")
         taskPresent = dailyCheckInTask_collection.find_one(
@@ -34,7 +36,7 @@ async def collectCheckInPoint(request:Request):
             }
         )
         if not taskPresent:
-            return JSONResponse({"msg": "Task not found"}, status=404)
+            return JSONResponse({"msg": "Task not found"}, status_code=404)
         session = client.start_session()
         session.start_transaction()
 
@@ -74,18 +76,18 @@ async def collectCheckInPoint(request:Request):
                             "msg": "Task completed successfully",
                             "allocatedPoints": taskPoints.get("allocatedPoints"),
                         },
-                        status=200,
+                        status_code=200,
                     )
                 else:
 
                     return JSONResponse(
-                        {"msg": "Points data not found for this task"}, status=404
+                        {"msg": "Points data not found for this task"}, status_code=404
                     )
 
             else:
 
                 return JSONResponse(
-                    {"msg": "No task found or task already completed"}, status=404
+                    {"msg": "No task found or task already completed"}, status_code=404
                 )
 
         else:
@@ -94,10 +96,10 @@ async def collectCheckInPoint(request:Request):
                 {
                     "msg": "You can not collect upcoming Task Points before its obtainable date"
                 },
-                status=400,
+                status_code=400,
             )
     except Exception as err:
-        return JSONResponse({"msg": str(err)}, status=400)
+        return JSONResponse({"msg": str(err)}, status_code=400)
     finally:
         if session:
             session.end_session()

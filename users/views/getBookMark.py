@@ -1,9 +1,10 @@
-from fastapi import Request
+from fastapi import Request, Depends
 from bson import ObjectId
 from fastapi.responses import JSONResponse
+from core.apis_requests import get_current_user
 from core.database import users_collection, shorts_collection
 
-async def getBookMark(request:Request):
+async def getBookMark(request:Request, token: str = Depends(get_current_user)):
 
     userId = request.state.userId
     
@@ -11,7 +12,7 @@ async def getBookMark(request:Request):
         {"_id": ObjectId(userId)},
     )
     if not user:
-        return JSONResponse({"msg": "no user found"}, status=400)
+        return JSONResponse({"msg": "no user found"}, status_code=400)
     try:
 
         if user and user.get("BookMark"):
@@ -36,14 +37,14 @@ async def getBookMark(request:Request):
 
             return JSONResponse(
                 {"msg": "bookmarked data is here", "bookMarkData": bookMarkData},
-                status=200,
+                status_code=200,
             )
         else:
             return JSONResponse(
-                {"msg": "bookmarked data not found", "bookMarkData": []}, status=200
+                {"msg": "bookmarked data not found", "bookMarkData": []}, status_code=200
             )
 
     except Exception as err:
         return JSONResponse(
-            {"msg": "something went wrong", "err": str(err)}, status=500
+            {"msg": "something went wrong", "err": str(err)}, status_code=500
         )

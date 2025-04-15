@@ -1,37 +1,37 @@
 
 import json
 from bson import ObjectId
-from fastapi import Request
+from fastapi import Depends
 from fastapi.responses import JSONResponse
 from core.database import (
     users_collection,
     movies_collection,
     continueWatching,
 )
-
-async def continueWatchingHistorySaving(request:Request):
+from core.apis_requests import get_current_user,ContinueWatchingHistorySavingRequest
+async def continueWatchingHistorySaving(request:ContinueWatchingHistorySavingRequest,token: str = Depends(get_current_user)):
     try:
-        body = await request.body
+        body = request.model_dump()
         moviesId = body.get("moviesId")
         currentShortsId = body.get("currentShortsId")
         timestamp = body.get("timestamp")
-        userId = request.userId
+        userId = request.state.userId
 
         if not userId:
-            return JSONResponse({"msg": "userId is missing"}, status=400)
+            return JSONResponse({"msg": "userId is missing"}, status_code=400)
         elif not moviesId:
-            return JSONResponse({"msg": "moviesId is missing"}, status=400)
+            return JSONResponse({"msg": "moviesId is missing"}, status_code=400)
         elif not currentShortsId:
-            return JSONResponse({"msg": "currentShortsId is missing"}, status=400)
+            return JSONResponse({"msg": "currentShortsId is missing"}, status_code=400)
         elif not timestamp:
-            return JSONResponse({"msg": "timestamp is missing"}, status=400)
+            return JSONResponse({"msg": "timestamp is missing"}, status_code=400)
 
         userDetails = users_collection.find_one(
             {"_id": ObjectId(userId)},
             {"password": 0},
         )
         if not userDetails:
-            return JSONResponse({"msg": "no user found"}, status=400)
+            return JSONResponse({"msg": "no user found"}, status_code=400)
         # if(not ObjectId())
         
         # if not isinstance(currentShortsId):
@@ -46,7 +46,7 @@ async def continueWatchingHistorySaving(request:Request):
         print(movieDetails)
         if not movieDetails:
             return JSONResponse(
-                {"msg": "no movie found or short not found"}, status=400
+                {"msg": "no movie found or short not found"}, status_code=400
             )
 
         result = continueWatching.update_one(
@@ -61,18 +61,18 @@ async def continueWatchingHistorySaving(request:Request):
         )
         if result.matched_count == 0:
             return JSONResponse(
-                {"msg": "History inserted successFully..."}, status=200
+                {"msg": "History inserted successFully..."}, status_code=200
             )
         elif result.modified_count > 0:
             return JSONResponse(
-                {"msg": "History updated successfully..."}, status=200
+                {"msg": "History updated successfully..."}, status_code=200
             )
         else:
             return JSONResponse(
                 {
                     "msg": "No changes were necessary; history is up-to-date. (Document existed but no modification occurred (possibly already updated with the same values))"
                 },
-                status=200,
+                status_code=200,
             )
     except json.JSONDecodeError:
-        return JSONResponse({"msg": "Invalid JSON"}, status=400)
+        return JSONResponse({"msg": "Invalid JSON"}, status_code=400)

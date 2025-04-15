@@ -1,22 +1,23 @@
 import json
 from bson import ObjectId
-from fastapi import Request
+from fastapi import Request,Depends
 from fastapi.responses import JSONResponse
 from core.database import (
     users_collection,
     userReactionLogs,
     shorts_collection,
 )
+from core.apis_requests import LikeVideoRequest,get_current_user
 
-async def likeVideo(request:Request):
-        body = await request.body
+async def likeVideo(request:LikeVideoRequest,token: str = Depends(get_current_user)):
+        body = request.model_dump()
         userId = request.state.userId
         shortsId = body.get("shortsId")
         reactionType = body.get("reactionType")
         if not shortsId:
-            return JSONResponse({"msg": "Mandatory fields are not present"}, status=400)
+            return JSONResponse({"msg": "Mandatory fields are not present"}, status_code=400)
         if not reactionType:
-            return JSONResponse({"msg": "please provide  valid fields"}, status=400)
+            return JSONResponse({"msg": "please provide  valid fields"}, status_code=400)
         if (
             reactionType != "Laugh"
             and reactionType != "Heart"
@@ -24,18 +25,18 @@ async def likeVideo(request:Request):
             and reactionType != "Clap"
             and reactionType != "Ovation"
         ):
-            return JSONResponse({"msg": "invalid type of reaction"}, status=400)
+            return JSONResponse({"msg": "invalid type of reaction"}, status_code=400)
 
         try:
             if not ObjectId.is_valid(shortsId):
                 return JSONResponse({"msg": "Please provide a valid shorts ID"})
             shorts = shorts_collection.find_one({"_id": ObjectId(shortsId)})
             if not shorts:
-                return JSONResponse({"msg": "shorts not found"}, status=404)
+                return JSONResponse({"msg": "shorts not found"}, status_code=404)
 
             user = users_collection.find_one({"_id": ObjectId(userId)})
             if not user:
-                return JSONResponse({"msg": "User not found"}, status=404)
+                return JSONResponse({"msg": "User not found"}, status_code=404)
 
             usersReactionResponse = userReactionLogs.find_one_and_update(
                 {"shortsId": ObjectId(shortsId), "userId": ObjectId(userId)},
@@ -46,12 +47,12 @@ async def likeVideo(request:Request):
             if not usersReactionResponse:
                 return JSONResponse(
                     {"msg": "something went wrong while saving reaction"},
-                    status=400,
+                    status_code=400,
                 )
 
             return JSONResponse(
-                {"msg": f"You Gave a {reactionType} Reaction to This Video"}, status=200
+                {"msg": f"You Gave a {reactionType} Reaction to This Video"}, status_code=200
             )
 
         except Exception as err:
-            return JSONResponse({"msg": str(err)}, status=400)
+            return JSONResponse({"msg": str(err)}, status_code=400)

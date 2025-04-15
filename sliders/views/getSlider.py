@@ -50,4 +50,4 @@ async def getSliders(request:Request):
         return JSONResponse({"sliders": serialized_sliders})
 
     except Exception as e:
-        return JSONResponse({"error": str(e)}, status=500)
+        return JSONResponse({"error": str(e)}, status_code=500)

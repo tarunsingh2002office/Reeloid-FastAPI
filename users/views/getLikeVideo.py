@@ -1,18 +1,19 @@
-from django.http import JsonResponse
+from fastapi.responses import JSONResponse
 import json
-from streaming_app_backend.mongo_client import users_collection, shorts_collection
+from core.database import users_collection, shorts_collection
 from bson import ObjectId
+from fastapi import Request, Depends
+from core.apis_requests import get_current_user, GetLikedVideoRequest
 
-
-def getLikedVideo(request):
-    body = json.loads(request.body)
-    userId = request.userId
-    # shortsId = body.get("shortsId")
+async def getLikedVideo(request:GetLikedVideoRequest,token: str = Depends(get_current_user)):
+    body =  request.model_dump()
+    userId = request.state.userId
+    shortsId = body.get("shortsId")
     user = users_collection.find_one(
         {"_id": ObjectId(userId)},
     )
     if not user:
-        return JsonResponse({"msg": "no user found"}, status=400)
+        return JSONResponse({"msg": "no user found"}, status_code=400)
     try:
 
         if user and user["LikedVideos"]:
@@ -31,14 +32,14 @@ def getLikedVideo(request):
                     shortsData["_id"] = str(shortsData["_id"])
                     LikedVideosData.append(shortsData)
 
-            return JsonResponse(
+            return JSONResponse(
                 {"msg": "Liked Videos data is here", "LikedVideos": LikedVideosData},
-                status=200,
+                status_code=200,
             )
         else:
-            return JsonResponse(
-                {"msg": "Liked Videos data not found", "LikedVideos": []}, status=200
+            return JSONResponse(
+                {"msg": "Liked Videos data not found", "LikedVideos": []}, status_code=200
             )
 
     except:
-        return JsonResponse({"msg": "something went wrong"}, status=500)
+        return JSONResponse({"msg": "something went wrong"}, status_code=500)

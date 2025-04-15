@@ -1,13 +1,12 @@
-import json
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.responses import JSONResponse
 from core.database import movies_collection
-
-async def serachItem(request: Request):
-    searchedItem = await request.body
+from core.apis_requests import get_current_user
+async def serachItem(request: Request,token: str = Depends(get_current_user)):
+    searchedItem = request.model_dump()
     if not searchedItem:
         return JSONResponse(
-            {"msg": "searched item is invalid", "status": False}, status=404
+            {"msg": "searched item is invalid", "status": False}, status_code=404
         )
     searchedResult = movies_collection.find(
         {"name": {"$regex": searchedItem, "$options": "i"}},
@@ -26,8 +25,8 @@ async def serachItem(request: Request):
                 "data": moviesList,
                 "success": False,
             },
-            status=200,
+            status_code=200,
         )
     return JSONResponse(
-        {"msg": "got it", "data": moviesList, "success": False}, status=200
+        {"msg": "got it", "data": moviesList, "success": False}, status_code=200
     )

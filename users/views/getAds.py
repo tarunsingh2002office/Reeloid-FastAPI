@@ -5,7 +5,7 @@ from core.database import adsCollection
 async def getAds(request:Request, path, sessionType):
 
     if not path:
-        return JSONResponse({"msg": "path is not present"}, status=400)
+        return JSONResponse({"msg": "path is not present"}, status_code=400)
     pathname = f"/{path.lower()}"
     sessionType = sessionType
     try:
@@ -23,11 +23,11 @@ async def getAds(request:Request, path, sessionType):
             adsList.append(ads)
         if not adsList:
             return JSONResponse(
-                {"msg": "no ads  data found", "adsList": adsList}, status=200
+                {"msg": "no ads  data found", "adsList": adsList}, status_code=200
             )
         return JSONResponse(
             {"msg": "hello getting ads are you ready to fire", "adsList": adsList}
         )
     except:
-        return JSONResponse({"msg": "something went wrong"}, status=500)
+        return JSONResponse({"msg": "something went wrong"}, status_code=500)
 

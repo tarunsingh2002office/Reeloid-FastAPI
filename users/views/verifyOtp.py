@@ -1,11 +1,10 @@
-from fastapi import Request
 from fastapi.responses import JSONResponse
 from core.database import forgotPasswordRequests
 from datetime import datetime, timedelta, timezone
 from helper_function.tokenCreator import tokenCreator
-
-async def verifyOtp(request:Request):
-    body = await request.body
+from core.apis_requests import VerifyOtpRequest
+async def verifyOtp(request:VerifyOtpRequest):
+    body = request.model_dump()
 
     otp = body.get("otp")  # this is the request for getting already created otp
     try:
@@ -28,7 +27,7 @@ async def verifyOtp(request:Request):
         if not existing_Requests:
             return JSONResponse(
                 {"msg": "No request found for changing otp in previous 15 minutes"},
-                status=400,
+                status_code=400,
             )
 
         return JSONResponse(
@@ -41,7 +40,7 @@ async def verifyOtp(request:Request):
                     }
                 ),
             },
-            status=200,
+            status_code=200,
         )
     except Exception as err:
-        return JSONResponse({"msg": f"{err}"}, status=400)
+        return JSONResponse({"msg": f"{err}"}, status_code=400)

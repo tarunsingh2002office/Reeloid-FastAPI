@@ -1,15 +1,15 @@
 import json
-from fastapi import Request
 from fastapi.responses import JSONResponse
+from core.apis_requests import CreateUserRequest
 from core.database import users_collection, client
 from helper_function.emailSender import emailSender
 from helper_function.saveUserInDataBase import saveUserInDataBase
 
-async def createUser(request: Request):
+async def createUser(request: CreateUserRequest):
     try:
-        body = await request.body
+        body =  request.model_dump()
     except json.JSONDecodeError:
-        return JSONResponse({"msg": "Invalid JSON"}, status=400)
+        return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
     
     email = body.get("email")
     name = body.get("name")
@@ -17,16 +17,16 @@ async def createUser(request: Request):
     confirmPassword = body.get("confirmPassword")
 
     if not name:
-        return JSONResponse({"msg": "name is not present"}, status=400)
+        return JSONResponse({"msg": "name is not present"}, status_code=400)
     if not email:
-        return JSONResponse({"msg": "email is not present"}, status=400)
+        return JSONResponse({"msg": "email is not present"}, status_code=400)
     if not password:
-        return JSONResponse({"msg": "password is not present"}, status=400)
+        return JSONResponse({"msg": "password is not present"}, status_code=400)
     if not confirmPassword:
-        return JSONResponse({"msg": "confirm password is not present"}, status=400)
+        return JSONResponse({"msg": "confirm password is not present"}, status_code=400)
     if password != confirmPassword:
         return JSONResponse(
-            {"msg": "password and confirm password is not same"}, status=400
+            {"msg": "password and confirm password is not same"}, status_code=400
         )
     
     session = client.start_session()
@@ -38,7 +38,7 @@ async def createUser(request: Request):
         if user:
             return JSONResponse(
                 {"msg": "user is already registered with us with this email"},
-                status=400,
+                status_code=400,
             )
 
         userCreated = saveUserInDataBase(
@@ -47,14 +47,14 @@ async def createUser(request: Request):
         emailSender({"name": name, "email": email})
         session.commit_transaction()
         return JSONResponse(
-            {"msg": "added user successfully", "success": True}, status=200
+            {"msg": "added user successfully", "success": True}, status_code=200
         )
     except Exception as err:
-        if session:
+        if session and session.in_transaction:
             session.abort_transaction()
         return JSONResponse(
             {"msg": str(err), "success": False},
-            status=400,
+            status_code=400,
         )
     finally:
         session.end_session()

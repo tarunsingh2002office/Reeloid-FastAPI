@@ -1,9 +1,7 @@
-import os
-from fastapi import Request
 from fastapi.responses import JSONResponse
 from core.database import paidMintsBuyerCollection
-
-async def paymentError(request: Request):
+from core.apis_requests import PaymentErrorRequest
+async def paymentError(request: PaymentErrorRequest):
     
     # Extract form data
     form_data = await request.form()
@@ -14,7 +12,7 @@ async def paymentError(request: Request):
     netAmountDeducted = form_data.get("net_amount_debit", "")
     paymentGateway = form_data.get("PG_TYPE", "")
     paymentAggregator = form_data.get("pa_name", "")
-    error_message = form_data.get("error_Message", "Payment Failed")
+    error_message = form_data.get("error_Message", "PaymentFailed")
 
     try:
         # Update the database

@@ -1,12 +1,12 @@
-from fastapi import Request
+from fastapi import Depends
 from fastapi.responses import JSONResponse
 from helper_function.checkSignedVideo import checkSignedVideo
-
-async def refreshTheVideoURL(request:Request):
+from core.apis_requests import get_current_user, RefreshTheVideoURLRequest
+async def refreshTheVideoURL(request:RefreshTheVideoURLRequest, token: str = Depends(get_current_user)):
 
     try:
-        body = await request.body
+        body = request.model_dump()
         data = checkSignedVideo(body.get("url"))
-        return JSONResponse({"data": data}, status=200)
+        return JSONResponse({"data": data}, status_code=200)
     except Exception as e:
-        return JSONResponse({"err": str(e)}, status=400)
+        return JSONResponse({"err": str(e)}, status_code=400)

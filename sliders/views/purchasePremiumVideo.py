@@ -6,11 +6,11 @@ from core.database import (
 )
 import json
 from bson import ObjectId
-from fastapi import Request
+from fastapi import Depends
 from fastapi.responses import JSONResponse
 from helper_function.checkSignedVideo import checkSignedVideo
-
-async def purchasePremiumVideo(request:Request):
+from core.apis_requests import get_current_user, PurchasePremiumVideoRequest
+async def purchasePremiumVideo(request:PurchasePremiumVideoRequest, token: str = Depends(get_current_user)):
 
         userId = request.state.userId
 
@@ -18,7 +18,7 @@ async def purchasePremiumVideo(request:Request):
         session.start_transaction()
         try:
             
-            bodyData = json.loads(request.body)
+            bodyData = request.model_dump()
 
             currentShortsID = bodyData.get("shortsID")
             
@@ -43,7 +43,7 @@ async def purchasePremiumVideo(request:Request):
                     {
                         "err": "unable to purchase the shorts... please try again or contact the customer support team "
                     },
-                    status=400,
+                    status_code=400,
                 )
             
             user = users_collection.find_one(
@@ -53,7 +53,7 @@ async def purchasePremiumVideo(request:Request):
                 session.abort_transaction()
                 return JSONResponse(
                     {"err": "unable to find the user with the given user id "},
-                    status=400,
+                    status_code=400,
                 )
             userWalletPoints = user.get("allocatedPoints") or 0
             if userWalletPoints < videosPointsSpend:
@@ -62,7 +62,7 @@ async def purchasePremiumVideo(request:Request):
                     {
                         "msg": "Not enough mints to purchase this video ...please purchase some mints then try to unlock this Paid features"
                     },
-                    status=400,
+                    status_code=400,
                 )
             updateAllocationPoints = users_collection.update_one(
                 {"_id": ObjectId(userId)},
@@ -76,7 +76,7 @@ async def purchasePremiumVideo(request:Request):
                     {
                         "err": "problem while updating the allocating points after purchasing the video"
                     },
-                    status=400,
+                    status_code=400,
                 )
             session.commit_transaction()
             return JSONResponse(
@@ -84,10 +84,10 @@ async def purchasePremiumVideo(request:Request):
                     "medium": checkSignedVideo(shortsData.get("medium")),
                     "high": checkSignedVideo(shortsData.get("high")),
                 },
-                status=200,
+                status_code=200,
             )
         except Exception as err:
             session.abort_transaction()
-            return JSONResponse({"err": str(err)}, status=400)
+            return JSONResponse({"err": str(err)}, status_code=400)
         finally:
             session.end_session()

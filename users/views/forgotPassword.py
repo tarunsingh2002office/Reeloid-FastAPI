@@ -1,6 +1,5 @@
 import json
 import random
-from fastapi import Request
 from datetime import datetime, timezone
 from fastapi.responses import JSONResponse
 from datetime import timedelta
@@ -9,20 +8,20 @@ from core.database import (
     users_collection,
     client,
 )
+from core.apis_requests import forgotPasswordAPIRequests 
 from helper_function.forgotPasswordEmailSender import forgotPasswordEmailSender
 
-
-async def forgotPassword(request:Request):
+async def forgotPassword(request:forgotPasswordAPIRequests):
     session = None
     try:
         # Parse JSON data from request body
-        data = await request.json()
+        data = request.model_dump()
         #json.loads(request.body)
         email = data.get("email")
-        # user_id = request.userId  # Extract userId from request body
+        # user_id = request.state.userId  # Extract userId from request body
 
         if not email:
-            return JSONResponse({"msg": "email is required"}, status=400)
+            return JSONResponse({"msg": "email is required"}, status_code=400)
 
         # Check if a request was already made within the last minute
         one_min_ago = datetime.now(timezone.utc) - timedelta(minutes=1)
@@ -34,7 +33,7 @@ async def forgotPassword(request:Request):
         )
 
         if not existing_user:
-            return JSONResponse({"msg": "you are not a valid user"}, status=429)
+            return JSONResponse({"msg": "you are not a valid user"}, status_code=429)
         existing_request = forgotPasswordRequests.find_one(
             {
                 "userId": existing_user["_id"],
@@ -44,7 +43,7 @@ async def forgotPassword(request:Request):
 
         if existing_request:
             return JSONResponse(
-                {"msg": "Please wait 1 minute before requesting again"}, status=429
+                {"msg": "Please wait 1 minute before requesting again"}, status_code=429
             )
         otp = random.randint(100000, 999999)
         # Insert new request log
@@ -72,11 +71,11 @@ async def forgotPassword(request:Request):
         )
 
     except json.JSONDecodeError:
-        return JSONResponse({"msg": "Invalid JSON format"}, status=400)
+        return JSONResponse({"msg": "Invalid JSON format"}, status_code=400)
     except Exception as err:
         if session:
             session.abort_transaction()
-        return JSONResponse({"msg": f"Error: {str(err)}"}, status=500)
+        return JSONResponse({"msg": f"Error: {str(err)}"}, status_code=500)
     finally:
         if session:
             session.end_session()

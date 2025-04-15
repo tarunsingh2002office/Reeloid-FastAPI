@@ -1,8 +1,8 @@
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.responses import JSONResponse
 from core.database import movies_collection, shorts_collection
-
-async def TrailerTrendingSection(request:Request):
+from core.apis_requests import get_current_user
+async def TrailerTrendingSection(request:Request,token: str = Depends(get_current_user)):
 
     moviesData = (
         movies_collection.find(
@@ -29,4 +29,4 @@ async def TrailerTrendingSection(request:Request):
 
         movie["shorts"] = shortsArray
         moviesArray.append(movie)
-    return JSONResponse({"trailersData": moviesArray}, status=200)
+    return JSONResponse({"trailersData": moviesArray}, status_code=200)

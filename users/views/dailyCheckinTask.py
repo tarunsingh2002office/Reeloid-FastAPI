@@ -1,12 +1,12 @@
 from bson import ObjectId
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.responses import JSONResponse
 from core.database import (
     dailyCheckInTask_collection,
     checkInPoints,
 )
-
-async def dailyCheckInTask(request: Request):
+from core.apis_requests import get_current_user
+async def dailyCheckInTask(request: Request, token: str = Depends(get_current_user)):
     try:
         userId = request.state.userId
 

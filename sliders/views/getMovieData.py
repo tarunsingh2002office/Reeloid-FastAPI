@@ -1,6 +1,6 @@
 import json
 from bson import ObjectId
-from fastapi import Request
+from fastapi import Depends
 from fastapi.responses import JSONResponse
 from core.database import (
     movies_collection,
@@ -10,11 +10,11 @@ from core.database import (
 )
 from helper_function.checkSignedVideo import checkSignedVideo
 from helper_function.checkPurchasedVideoData import checkPurchasedVideoData
-
-async def getMovieData(request:Request):
+from core.apis_requests import get_current_user, GetMovieDataRequest
+async def getMovieData(request:GetMovieDataRequest, token: str = Depends(get_current_user)):
     userId = request.state.userId
     try:
-        bodyData = await request.body
+        bodyData = request.model_dump()
 
         movieID = bodyData.get("movieID")
 
@@ -94,9 +94,9 @@ async def getMovieData(request:Request):
                             )
                             shorts.append(shortsData)
 
-        return JSONResponse({"shortsData": shorts}, status=200)
+        return JSONResponse({"shortsData": shorts}, status_code=200)
     except Exception as err:
 
         return JSONResponse(
-            {"msg": "something went wrong", err: str(err)}, status=400
+            {"msg": "something went wrong", err: str(err)}, status_code=400
         )

@@ -1,9 +1,10 @@
 from bson import ObjectId
-from fastapi import Request
+from fastapi import Request,Depends
 from fastapi.responses import JSONResponse
+from core.apis_requests import get_current_user
 from core.database import users_collection,genre_collection,languages_collection
 
-async def getProfileDetails(request:Request):
+async def getProfileDetails(request:Request,token: str = Depends(get_current_user)):
     try:
         userId = request.state.userId
         userDetails = users_collection.find_one(
@@ -11,7 +12,7 @@ async def getProfileDetails(request:Request):
             {"password": 0},
         )
         if not userDetails:
-            return JSONResponse({"userDetails": []}, status=200)
+            return JSONResponse({"userDetails": []}, status_code=200)
         userDetails["_id"] = str(userDetails["_id"])
 
         genreList = []
@@ -36,6 +37,6 @@ async def getProfileDetails(request:Request):
                 languageData["_id"] = str(languageData["_id"])
                 languageList.append(languageData)
         userDetails["selectedLanguages"] = languageList
-        return JSONResponse({"userDetails": userDetails}, status=200)
+        return JSONResponse({"userDetails": userDetails}, status_code=200)
     except Exception as err:
         return JSONResponse({"msg": str(err)})

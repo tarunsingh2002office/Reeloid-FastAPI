@@ -15,6 +15,7 @@ class AccessTokenAuthenticatorMiddleware(BaseHTTPMiddleware):
             "/payment/error/",
             "/user/signIn/",
             "/user/register/",
+            "/user/register",
             "/user/googleAuth/",
             # "/swagger/",
             # "/swagger-ui/",

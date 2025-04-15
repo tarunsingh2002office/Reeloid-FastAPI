@@ -1,24 +1,23 @@
 import json
-from fastapi import Request
 from fastapi.responses import JSONResponse
 from core.database import users_collection
 from helper_function.verifyPassword import verifyPassword
 from helper_function.updateLoginStatus import updateLoginStatus
-
-async def signIn(request: Request):
+from core.apis_requests import SignInRequest
+async def signIn(request: SignInRequest):
     try:
-        body = await request.body
+        body = request.model_dump()
     except json.JSONDecodeError:
-        return JSONResponse({"msg": "Invalid JSON"}, status=400)
+        return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
     email = body.get("email")
-    password = body.get("password")
-    fcmtoken = body.get("nId")  # notification id
-    deviceType = body.get("deviceType")
+    password = body.get("password") 
+    fcmtoken = body.get("nId") or "" # notification id
+    deviceType = body.get("deviceType") or ""
 
     if not email:
-        return JSONResponse({"msg": "email is not present"}, status=400)
+        return JSONResponse({"msg": "email is not present"}, status_code=400)
     if not password:
-        return JSONResponse({"msg": "password is not present"}, status=400)
+        return JSONResponse({"msg": "password is not present"}, status_code=400)
 
     userResponse = users_collection.find_one({"email": email})
 
@@ -28,7 +27,7 @@ async def signIn(request: Request):
                 "msg": "No user Found with this email and password combination",
                 "success": False,
             },
-            status=400,
+            status_code=400,
         )
     else:
         try:
@@ -41,7 +40,7 @@ async def signIn(request: Request):
                     {
                         "msg": "The password you Entered not matched with stored password"
                     },
-                    status=401,
+                    status_code=401,
                 )
             del userResponse["password"]
             updatedUserResponse, token = updateLoginStatus(
@@ -53,8 +52,8 @@ async def signIn(request: Request):
                     "userData": updatedUserResponse,
                     "token": token,
                 },
-                status=200,
+                status_code=200,
             )
         except Exception as err:
 
-            return JSONResponse({"msg": str(err)}, status=400)
+            return JSONResponse({"msg": str(err)}, status_code=400)

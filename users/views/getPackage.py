@@ -8,11 +8,11 @@ async def getPackage(request:Request):
         
         mintsPlanList = []
         if not mintsPlanResponse:
-            return JSONResponse({"data": []}, status=200)
+            return JSONResponse({"data": []}, status_code=200)
         for plans in mintsPlanResponse:
             
             plans["_id"] = str(plans.get("_id"))
             mintsPlanList.append(plans)
-        return JSONResponse({"mintsPlanList": mintsPlanList}, status=200)
+        return JSONResponse({"mintsPlanList": mintsPlanList}, status_code=200)
     except Exception as err:
-        return JSONResponse({"msg": str(err)}, status=400)
+        return JSONResponse({"msg": str(err)}, status_code=400)
