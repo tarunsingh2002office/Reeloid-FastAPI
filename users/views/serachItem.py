@@ -7,11 +7,12 @@ async def serachItem(request: Request,token: str = Depends(get_current_user),bod
             "name": "abcd"
         }
     )):
-    searchedItem = await request.json()
-    if not searchedItem:
+    body = await request.json()
+    if not body:
         return JSONResponse(
             {"msg": "searched item is invalid", "status": False}, status_code=404
         )
+    searchedItem = body.get("name")
     searchedResult = movies_collection.find(
         {"name": {"$regex": searchedItem, "$options": "i"}},
         {"_id": 1, "name": 1, "fileLocation": 1},
