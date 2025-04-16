@@ -1,18 +1,19 @@
 import requests
-from fastapi import Request, Body,Depends
+import hashlib
 from core.config import payu_settings
+from fastapi import Request, Body, Depends
 from fastapi.responses import JSONResponse
 from helper_function.apis_requests import get_current_user
 async def verifyPayment(request: Request,body: dict = Body(
-        example={
-            "txnid": "1234"
-        }
+        ...
+        # ,example={
+        #     "txnid": "1234"
+        # }
     ), token: str = Depends(get_current_user)):
     """Verify payment using PayU API"""
     try:
-        # Parse JSON body
-        data = request.json()
-        txnid = data.get("txnid")
+        # data = request.json()
+        txnid = body.get("txnid")
 
         if not txnid:
             return JSONResponse({"msg": "Transaction ID is required"}, status_code=400)

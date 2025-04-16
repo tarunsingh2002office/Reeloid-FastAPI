@@ -5,27 +5,26 @@ from core.database import paidMintsBuyerCollection, client
 from helper_function.addPointsToProfile import addPointsToProfile
 
 async def paymentSuccess(request: Request, token: str = Depends(get_current_user)
-                         ,body: dict = Body(
-        example={
-            "txnid": "12334",
-            "mihpayid": "12334",
-            "bank_ref_num": "12334",
-            "mode": "12334",
-            "net_amount_debit": "12334",
-            "PG_TYPE": "12334",
-            "pa_name": "12334",
-        }
+                         ,body: dict = Body(...
+        # example={
+        #     "txnid": "12334",
+        #     "mihpayid": "12334",
+        #     "bank_ref_num": "12334",
+        #     "mode": "12334",
+        #     "net_amount_debit": "12334",
+        #     "PG_TYPE": "12334",
+        #     "pa_name": "12334",
+        # }
     )
     ):
     # Extract form data
-    form_data = await request.form()
-    txnid = form_data.get("txnid")
-    mihpayid = form_data.get("mihpayid") or ""
-    bank_ref_num = form_data.get("bank_ref_num") or ""
-    paymentMode = form_data.get("mode") or ""
-    netAmountDeducted = form_data.get("net_amount_debit") or ""
-    paymentGateway = form_data.get("PG_TYPE") or ""
-    paymentAggregator = form_data.get("pa_name") or ""
+    txnid = body.get("txnid")
+    mihpayid = body.get("mihpayid") or ""
+    bank_ref_num = body.get("bank_ref_num") or ""
+    paymentMode = body.get("mode") or ""
+    netAmountDeducted = body.get("net_amount_debit") or ""
+    paymentGateway = body.get("PG_TYPE") or ""
+    paymentAggregator = body.get("pa_name") or ""
 
     try:
         # Start a MongoDB session for transaction

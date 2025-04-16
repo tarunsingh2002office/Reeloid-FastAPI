@@ -4,33 +4,32 @@ from core.database import paidMintsBuyerCollection
 from helper_function.apis_requests import get_current_user
 from core.config import payu_settings
 async def paymentError(request: Request, token: str = Depends(get_current_user)
-                       ,body: dict = Body(
-        example={
-            "txnid": "12334",
-            "mihpayid": "12334",
-            "bank_ref_num": "12334",
-            "mode": "12334",
-            "net_amount_debit": "12334",
-            "PG_TYPE": "12334",
-            "pa_name": "12334",
-            "error_Message": "12334",
-            "PaymentFailed": "1234"
-        }
+                       ,body: dict = Body(...
+        # example={
+        #     "txnid": "12334",
+        #     "mihpayid": "12334",
+        #     "bank_ref_num": "12334",
+        #     "mode": "12334",
+        #     "net_amount_debit": "12334",
+        #     "PG_TYPE": "12334",
+        #     "pa_name": "12334",
+        #     "error_Message": "12334",
+        #     "PaymentFailed": "1234"
+        # }
     )
     ):
     PAYU_KEY = payu_settings.PAYU_KEY
     PAYU_SALT = payu_settings.PAYU_SALT
     # Extract form data
-    form_data = await request.json()
-    txnid = form_data.get("txnid")
+    txnid = body.get("txnid")
     headers = {"key": PAYU_KEY, "command": "verify_payment"}
-    mihpayid = form_data.get("mihpayid") or ""
-    bank_ref_num = form_data.get("bank_ref_num") or ""
-    paymentMode = form_data.get("mode") or ""
-    netAmountDeducted = form_data.get("net_amount_debit") or ""
-    paymentGateway = form_data.get("PG_TYPE") or ""
-    paymentAggregator = form_data.get("pa_name") or ""
-    error_message = form_data.get("error_Message", "Payment Failed")
+    mihpayid = body.get("mihpayid") or ""
+    bank_ref_num = body.get("bank_ref_num") or ""
+    paymentMode = body.get("mode") or ""
+    netAmountDeducted = body.get("net_amount_debit") or ""
+    paymentGateway = body.get("PG_TYPE") or ""
+    paymentAggregator = body.get("pa_name") or ""
+    error_message = body.get("error_Message", "Payment Failed")
 
     try:
         # Update the database
