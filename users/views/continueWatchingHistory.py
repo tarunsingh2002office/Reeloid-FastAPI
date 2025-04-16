@@ -42,7 +42,7 @@ async def continueWatchingHistorySaving(request:Request,token: str = Depends(get
         movieDetails = movies_collection.find_one(
             {
                 "_id": ObjectId(moviesId),
-                "shorts": ObjectId(currentShortsId),
+                "shorts": currentShortsId,
             }
         )
         if not movieDetails:

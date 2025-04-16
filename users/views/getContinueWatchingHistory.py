@@ -2,7 +2,7 @@ from bson import ObjectId
 from fastapi import Request
 from fastapi import Depends
 from fastapi.responses import JSONResponse
-from core.database import users_collection,continueWatching
+from core.database import users_collection, continueWatching, movies_collection
 from helper_function.apis_requests import get_current_user
 
 
@@ -27,8 +27,9 @@ async def getUserWatchHistory(request:Request,token: str = Depends(get_current_u
             return JSONResponse({"msg": "no watch history found"}, status_code=400)
 
         history = []
-        for i in userWatchHistory:
-            history.append(i)
+        for watchHistory in userWatchHistory:
+            watchHistory["movieDetails"] = movies_collection.find_one({"_id":ObjectId(watchHistory["moviesId"])},{"_id":0,"name":1,"fileLocation":1})
+            history.append(watchHistory)
 
         return JSONResponse({"userWatchHistory": history}, status_code=200)
     except Exception as err:
