@@ -1,11 +1,11 @@
-from fastapi import Depends, Body, Request
+from fastapi import Depends, Form, Request
 from fastapi.responses import JSONResponse
 from helper_function.apis_requests import get_current_user
 from core.database import paidMintsBuyerCollection, client
 from helper_function.addPointsToProfile import addPointsToProfile
 
 async def paymentSuccess(request: Request, token: str = Depends(get_current_user)
-                         ,body: dict = Body(...
+                        #  ,body: dict = Body(...
         # example={
         #     "txnid": "12334",
         #     "mihpayid": "12334",
@@ -15,16 +15,23 @@ async def paymentSuccess(request: Request, token: str = Depends(get_current_user
         #     "PG_TYPE": "12334",
         #     "pa_name": "12334",
         # }
-    )
+    # )
+    ,txnid: str = Form(...),
+    mihpayid: str = Form(""),
+    bank_ref_num: str = Form(""),
+    mode: str = Form(""),
+    net_amount_debit: str = Form(""),
+    PG_TYPE: str = Form(""),
+    pa_name: str = Form("")
     ):
     # Extract form data
-    txnid = body.get("txnid")
-    mihpayid = body.get("mihpayid") or ""
-    bank_ref_num = body.get("bank_ref_num") or ""
-    paymentMode = body.get("mode") or ""
-    netAmountDeducted = body.get("net_amount_debit") or ""
-    paymentGateway = body.get("PG_TYPE") or ""
-    paymentAggregator = body.get("pa_name") or ""
+    # txnid = body.get("txnid")
+    # mihpayid = body.get("mihpayid") or ""
+    # bank_ref_num = body.get("bank_ref_num") or ""
+    # paymentMode = body.get("mode") or ""
+    # netAmountDeducted = body.get("net_amount_debit") or ""
+    # paymentGateway = body.get("PG_TYPE") or ""
+    # paymentAggregator = body.get("pa_name") or ""
 
     try:
         # Start a MongoDB session for transaction
@@ -38,13 +45,13 @@ async def paymentSuccess(request: Request, token: str = Depends(get_current_user
                 "$set": {
                     "status": "Success",
                     "mihpayid": mihpayid,
-                    "Deductable_Amount": netAmountDeducted,
+                    "Deductable_Amount": net_amount_debit,
                     "paymentSource": "Payu",
-                    "paymentMode": paymentMode,
+                    "paymentMode": mode,
                     "bank_ref_num": bank_ref_num,
-                    "netAmountDeducted": netAmountDeducted,
-                    "paymentGateway": paymentGateway,
-                    "paymentAggregator": paymentAggregator,
+                    "netAmountDeducted": net_amount_debit,
+                    "paymentGateway": PG_TYPE,
+                    "paymentAggregator": pa_name,
                 }
             },
             session=session,

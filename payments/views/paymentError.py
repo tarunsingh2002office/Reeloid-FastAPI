@@ -1,36 +1,36 @@
-from fastapi import Request, Body, Depends
+from fastapi import Request, Form, Depends, Body
 from fastapi.responses import JSONResponse
 from core.database import paidMintsBuyerCollection
 from helper_function.apis_requests import get_current_user
 from core.config import payu_settings
 async def paymentError(request: Request, token: str = Depends(get_current_user)
-                       ,body: dict = Body(...
-        # example={
-        #     "txnid": "12334",
-        #     "mihpayid": "12334",
-        #     "bank_ref_num": "12334",
-        #     "mode": "12334",
-        #     "net_amount_debit": "12334",
-        #     "PG_TYPE": "12334",
-        #     "pa_name": "12334",
-        #     "error_Message": "12334",
-        #     "PaymentFailed": "1234"
-        # }
-    )
+    #                    ,body: dict = Body(...
+    #     # example={
+    #     #     "txnid": "12334",
+    #     #     "mihpayid": "12334",
+    #     #     "bank_ref_num": "12334",
+    #     #     "mode": "12334",
+    #     #     "net_amount_debit": "12334",
+    #     #     "PG_TYPE": "12334",
+    #     #     "pa_name": "12334",
+    #     #     "error_Message": "12334",
+    #     #     "PaymentFailed": "1234"
+    #     # }
+    # )
+    ,txnid: str = Form(...),
+    mihpayid: str = Form(""),
+    bank_ref_num: str = Form(""),
+    mode: str = Form(""),
+    net_amount_debit: str = Form(""),
+    PG_TYPE: str = Form(""),
+    pa_name: str = Form(""),
+    error_Message: str = Form("Payment Failed", alias="error_Message")
     ):
     PAYU_KEY = payu_settings.PAYU_KEY
     PAYU_SALT = payu_settings.PAYU_SALT
     # Extract form data
-    txnid = body.get("txnid")
     headers = {"key": PAYU_KEY, "command": "verify_payment"}
-    mihpayid = body.get("mihpayid") or ""
-    bank_ref_num = body.get("bank_ref_num") or ""
-    paymentMode = body.get("mode") or ""
-    netAmountDeducted = body.get("net_amount_debit") or ""
-    paymentGateway = body.get("PG_TYPE") or ""
-    paymentAggregator = body.get("pa_name") or ""
-    error_message = body.get("error_Message", "Payment Failed")
-
+    
     try:
         # Update the database
         paidMintsPlan = paidMintsBuyerCollection.find_one_and_update(
@@ -39,14 +39,14 @@ async def paymentError(request: Request, token: str = Depends(get_current_user)
                 "$set": {
                     "status": "Failed",
                     "mihpayid": mihpayid,
-                    "Deductable_Amount": netAmountDeducted,
+                    "Deductable_Amount": net_amount_debit,
                     "paymentSource": "Payu",
-                    "paymentMode": paymentMode,
+                    "paymentMode": mode,
                     "bank_ref_num": bank_ref_num,
-                    "netAmountDeducted": netAmountDeducted,
-                    "paymentGateway": paymentGateway,
-                    "paymentAggregator": paymentAggregator,
-                    "error_message": error_message,
+                    "netAmountDeducted": net_amount_debit,
+                    "paymentGateway": PG_TYPE,
+                    "paymentAggregator": pa_name,
+                    "error_message": error_Message,
                 }
             },
         )
