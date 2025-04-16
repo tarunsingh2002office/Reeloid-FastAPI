@@ -54,7 +54,7 @@ async def paymentError(request: Request, token: str = Depends(get_current_user)
             raise Exception("Transaction ID not found in database.")
         
         return JSONResponse(
-            {"msg": "payment Failed", "txnid": txnid, "error_message": error_message},
+            {"msg": "payment Failed", "txnid": txnid, "error_message": error_Message},
             status_code=200,
         )
     except Exception as err:
