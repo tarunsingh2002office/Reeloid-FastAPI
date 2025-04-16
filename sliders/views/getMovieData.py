@@ -10,6 +10,7 @@ from core.database import (
 from helper_function.checkSignedVideo import checkSignedVideo
 from helper_function.checkPurchasedVideoData import checkPurchasedVideoData
 from helper_function.apis_requests import get_current_user
+from helper_function.serialize_mongo_document   import serialize_document
 async def getMovieData(request:Request, token: str = Depends(get_current_user),body: dict = Body(
         example={
             "movieID": "1234"
@@ -28,6 +29,7 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
         shorts = []
 
         if data:
+            data = serialize_document(data)
             movies_collection.update_one(
                 {"_id": ObjectId(movieID)}, {"$inc": {"views": 1}}
             )
@@ -62,6 +64,7 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
                         )
 
                         if shortsData:
+                            shortsData =  serialize_document(shortsData)
                             purchased = checkPurchasedVideoData(
                                 currentShortsID, userId
                             )
