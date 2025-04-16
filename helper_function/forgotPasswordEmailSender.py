@@ -14,7 +14,7 @@ def forgotPasswordEmailSender(data):
     try:
         subject = "Reeloid: Password Reset Request"
         from_email = email_settings.EMAIL_HOST_USER  # Replace with your email
-        to_email = [data.get("email")]  # Recipient email
+        to_email = data.get("email")  # Recipient email
 
         # Plain text version (fallback)
         text_content = f"""
@@ -75,7 +75,7 @@ def forgotPasswordEmailSender(data):
         with smtplib.SMTP(email_settings.EMAIL_HOST, email_settings.EMAIL_PORT) as server:
             server.starttls()  # Secure the connection
             server.login(email_settings.EMAIL_HOST_USER, email_settings.EMAIL_HOST_PASSWORD)  # Login to the SMTP server
-            server.sendmail(from_email, to_email, message.as_string())  # Send the email
+            server.sendmail(from_email, [to_email], message.as_string())  # Send the email
 
         return "Email sent successfully"
 

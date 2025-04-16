@@ -9,11 +9,10 @@ def emailSender(data):
     try:
         subject = "Reeloid : Account Registration Successful"
         from_email = email_settings.EMAIL_HOST_USER  # Replace with your Gmail
-        to_email = [recipient_email]  # Replace with recipient's email
+        to_email = recipient_email  # Replace with recipient's email
 
         # Plain text version (fallback)
         text_content = "Welcome to Reeloid! Your account registration was successful."
-
         # HTML content
         html_content = f"""
         <html>
@@ -47,13 +46,11 @@ def emailSender(data):
         </body>
         </html>
         """
-
         # Create the email message
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
         message["From"] = from_email
         message["To"] = to_email
-
         # Attach plain text and HTML content
         message.attach(MIMEText(text_content, "plain"))
         message.attach(MIMEText(html_content, "html"))
@@ -62,7 +59,7 @@ def emailSender(data):
         with smtplib.SMTP(email_settings.EMAIL_HOST, email_settings.EMAIL_PORT) as server:
             server.starttls()  # Secure the connection
             server.login(email_settings.EMAIL_HOST_USER, email_settings.EMAIL_HOST_PASSWORD)  # Login to the SMTP server
-            server.sendmail(from_email, to_email, message.as_string())  # Send the email
+            server.sendmail(from_email, [to_email], message.as_string())  # Send the email
 
         return "Email sent successfully"
     
