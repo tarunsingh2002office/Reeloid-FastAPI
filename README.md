@@ -1,12 +1,12 @@
-# Reeloid Python Django Backend
+# Reeloid Python FastAPI Backend
 
-Reeloid is a **Django-based backend** designed to support the Reeloid app. It provides REST APIs, authentication, Celery task management, and database operations using MongoDB and MySQL.
+Reeloid is a **FastAPI-based backend** designed to support the Reeloid app. It provides REST APIs, authentication, Celery task management, and database operations using MongoDB.
 
 ---
 
 ## 🚀 Features
 
-- ✅ **Django REST Framework (DRF)** for API development
+- ✅ **FASTAPI** for API development
 - ✅ **MongoDB ** database support
 - ✅ **Celery** for asynchronous task execution
 - ✅ **Redis** for caching and task queueing
@@ -22,19 +22,19 @@ Reeloid is a **Django-based backend** designed to support the Reeloid app. It pr
 ### **1️⃣ Clone the Repository**
 Run the following command in **CMD (Windows)** or **Terminal (Linux/macOS)**:
 ```sh
-git clone https://github.com/yourusername/reeloid-python-django-backend.git
-cd reeloid-python-django-backend
+git clone https://github.com/tarunsingh2002office/Reeloid-FastAPI.git
+cd Reeloid-FastAPI
 ```
 
 ### **2️⃣ Create a Virtual Environment**
 - **For Windows (CMD or PowerShell)**:
   ```sh
   python -m venv venv
-  venv\Scripts\activate
+  .\venv\Scripts\activate
   ```
 - **For Ubuntu/Linux/macOS**:
   ```sh
-  python3 -m venv venv
+  python -m venv env
   source venv/bin/activate
   ```
 
@@ -46,24 +46,31 @@ pip install -r requirements.txt
 ### **4️⃣ Set Up Environment Variables**
 Create a `.env` file in the project root and add:
 ```env
-SECRET_KEY=your_secret_key
-DEBUG=True
-DATABASE_URL=connection string for mongo db
-MONGO_URI=connection string for mongo db
-REDIS_URL=redis://localhost:6379
+SUGAR_VALUE=
+
+GOOGLE_CLIENT_ID=
+EMAIL_PORT=
+EMAIL_HOST=
+EMAIL_USE_TLS=
+EMAIL_HOST_USER=
+EMAIL_HOST_PASSWORD=
+
+MONGODB_URI=
+CELERY_BROKER_URL=
+
+
+PAYU_URL=
+PAYU_SALT=
+PAYU_KEY=
 ```
 
-### **5️⃣ Apply Migrations**
+### **5️⃣ Run the Development Server**
 Run the following command:
 ```sh
-python manage.py migrate
+python main.py
 ```
 
-### **6️⃣ Run the Development Server**
-```sh
-python manage.py runserver
-```
-Your backend should now be running at **`http://127.0.0.1:8000/`** 🎉
+Your backend should now be running at **`http://localhost:8000/docs#/`** 🎉
 
 ---
 
@@ -170,8 +177,8 @@ This project is licensed under the **MIT License**.
 
 ## 📞 Contact
 
-- **GitHub:** [@shivam5676](https://github.com/shivam5676)
-- **Email:** shivam.handler@gmail.com
+- **GitHub:** [@TarunSingh](https://github.com/tarunsingh2002office)
+- **Email:** tarunsingh2002office@gmail.com
 
 ---
 🚀 **Happy Coding!**
