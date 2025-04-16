@@ -9,6 +9,7 @@ from fastapi.responses import JSONResponse
 from helper_function.emailSender import emailSender
 from helper_function.saveUserInDataBase import saveUserInDataBase
 from helper_function.updateLoginStatus import updateLoginStatus
+from helper_function.serialize_mongo_document import serialize_document
 
 async def googleAuth(request:Request,body: dict = Body(
         example={
@@ -47,7 +48,7 @@ async def googleAuth(request:Request,body: dict = Body(
             name = idinfo.get("name")
 
             if userResponse:
-
+                userResponse = serialize_document(userResponse)
                 updatedUserResponse, token = updateLoginStatus(
                     userResponse, fcmtoken, deviceType
                 )
@@ -70,6 +71,7 @@ async def googleAuth(request:Request,body: dict = Body(
                 )
                 # print("get",getSavedUser)
                 if getSavedUser:
+                    getSavedUser = serialize_document(getSavedUser)
                     updatedUserResponse, token = updateLoginStatus(
                         getSavedUser, fcmtoken, deviceType
                     )
