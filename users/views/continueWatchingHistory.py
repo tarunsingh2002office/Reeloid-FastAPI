@@ -38,18 +38,13 @@ async def continueWatchingHistorySaving(request:Request,token: str = Depends(get
         )
         if not userDetails:
             return JSONResponse({"msg": "no user found"}, status_code=400)
-        # if(not ObjectId())
-        
-        # if not isinstance(currentShortsId):
-        #     currentShortsId=ObjectId(currentShortsId)
+
         movieDetails = movies_collection.find_one(
             {
                 "_id": ObjectId(moviesId),
-                "shorts": currentShortsId,
-                # Directly match the ObjectId in the array
+                "shorts": ObjectId(currentShortsId),
             }
         )
-        print(movieDetails)
         if not movieDetails:
             return JSONResponse(
                 {"msg": "no movie found or short not found"}, status_code=400

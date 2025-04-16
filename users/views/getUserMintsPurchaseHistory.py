@@ -7,6 +7,7 @@ from core.database import (
 from bson import ObjectId
 from fastapi import Request,Depends
 from helper_function.apis_requests import get_current_user
+from helper_function.serialize_mongo_document import serialize_document
 
 async def getUserMintPurchaseHistory(request:Request,token: str = Depends(get_current_user)):
     try:
@@ -37,10 +38,7 @@ async def getUserMintPurchaseHistory(request:Request,token: str = Depends(get_cu
         if not userMintsPurchaseHistory:
             return JSONResponse({"msg": "no purchase history found"}, status_code=400)
 
-        history = []
-        for planPurchaseData in userMintsPurchaseHistory:
-            planPurchaseData["_id"] = str(planPurchaseData["_id"])
-            history.append(planPurchaseData)
+        history = [serialize_document(planPurchaseData) for planPurchaseData in userMintsPurchaseHistory]
 
         return JSONResponse({"userMintsPurchaseHistory": history}, status_code=200)
     except Exception as err:
