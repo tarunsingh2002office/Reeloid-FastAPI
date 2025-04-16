@@ -1,4 +1,3 @@
-import hashlib
 import requests
 from fastapi import Request, Body
 from core.config import payu_settings
@@ -11,7 +10,7 @@ async def verifyPayment(request: Request,body: dict = Body(
     """Verify payment using PayU API"""
     try:
         # Parse JSON body
-        data = await request.json()
+        data = request.json()
         txnid = data.get("txnid")
 
         if not txnid:
@@ -31,6 +30,8 @@ async def verifyPayment(request: Request,body: dict = Body(
             "var1": txnid,  # Transaction ID to verify
             "hash": "",  # Hash will be calculated below
         }
+
+        import hashlib
 
         # Generate Hash (Using SHA-512)
         hash_string = f"{PAYU_KEY}|verify_payment|{txnid}|{PAYU_SALT}"

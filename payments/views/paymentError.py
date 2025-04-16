@@ -1,19 +1,21 @@
 from fastapi import Request, Body
 from fastapi.responses import JSONResponse
 from core.database import paidMintsBuyerCollection
-async def paymentError(request: Request,body: dict = Body(
-        example={
-            "txnid": "12334",
-            "mihpayid": "12334",
-            "bank_ref_num": "12334",
-            "mode": "12334",
-            "net_amount_debit": "12334",
-            "PG_TYPE": "12334",
-            "pa_name": "12334",
-            "error_Message": "12334",
-            "PaymentFailed": "1234"
-        }
-    )):
+async def paymentError(request: Request
+    #                    ,body: dict = Body(
+    #     example={
+    #         "txnid": "12334",
+    #         "mihpayid": "12334",
+    #         "bank_ref_num": "12334",
+    #         "mode": "12334",
+    #         "net_amount_debit": "12334",
+    #         "PG_TYPE": "12334",
+    #         "pa_name": "12334",
+    #         "error_Message": "12334",
+    #         "PaymentFailed": "1234"
+    #     }
+    # )
+    ):
     
     # Extract form data
     form_data = await request.form()
