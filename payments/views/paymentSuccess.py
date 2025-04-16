@@ -4,28 +4,28 @@ from helper_function.apis_requests import get_current_user
 from core.database import paidMintsBuyerCollection, client
 from helper_function.addPointsToProfile import addPointsToProfile
 
-async def paymentSuccess(request: Request
-    #                      , token: str = Depends(get_current_user),body: dict = Body(
-    #     example={
-    #         "txnid": "12334",
-    #         "mihpayid": "12334",
-    #         "bank_ref_num": "12334",
-    #         "mode": "12334",
-    #         "net_amount_debit": "12334",
-    #         "PG_TYPE": "12334",
-    #         "pa_name": "12334",
-    #     }
-    # )
+async def paymentSuccess(request: Request, token: str = Depends(get_current_user)
+                         ,body: dict = Body(
+        example={
+            "txnid": "12334",
+            "mihpayid": "12334",
+            "bank_ref_num": "12334",
+            "mode": "12334",
+            "net_amount_debit": "12334",
+            "PG_TYPE": "12334",
+            "pa_name": "12334",
+        }
+    )
     ):
     # Extract form data
     form_data = await request.form()
     txnid = form_data.get("txnid")
-    mihpayid = form_data.get("mihpayid", "")
-    bank_ref_num = form_data.get("bank_ref_num", "")
-    paymentMode = form_data.get("mode", "")
-    netAmountDeducted = form_data.get("net_amount_debit", "")
-    paymentGateway = form_data.get("PG_TYPE", "")
-    paymentAggregator = form_data.get("pa_name", "")
+    mihpayid = form_data.get("mihpayid") or ""
+    bank_ref_num = form_data.get("bank_ref_num") or ""
+    paymentMode = form_data.get("mode") or ""
+    netAmountDeducted = form_data.get("net_amount_debit") or ""
+    paymentGateway = form_data.get("PG_TYPE") or ""
+    paymentAggregator = form_data.get("pa_name") or ""
 
     try:
         # Start a MongoDB session for transaction

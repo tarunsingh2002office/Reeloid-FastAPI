@@ -1,12 +1,13 @@
 import requests
-from fastapi import Request, Body
+from fastapi import Request, Body,Depends
 from core.config import payu_settings
 from fastapi.responses import JSONResponse
+from helper_function.apis_requests import get_current_user
 async def verifyPayment(request: Request,body: dict = Body(
         example={
             "txnid": "1234"
         }
-    )):
+    ), token: str = Depends(get_current_user)):
     """Verify payment using PayU API"""
     try:
         # Parse JSON body
