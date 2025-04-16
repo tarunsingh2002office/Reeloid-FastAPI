@@ -20,7 +20,7 @@ def generate_hash(data):
     return hashlib.sha512(hash_string.encode()).hexdigest()
 
 
-def paymentUrlGeneration(request: Request, token: str = Depends(get_current_user),body: dict = Body(
+async def paymentUrlGeneration(request: Request, token: str = Depends(get_current_user),body: dict = Body(
         example={
             "email": "a@gmail.com",
             "phone": "1234567890",
@@ -32,7 +32,7 @@ def paymentUrlGeneration(request: Request, token: str = Depends(get_current_user
     """Generate PayU Payment Request"""
     try:
         # Parse JSON body
-        data = request.json()
+        data = await request.json()
         packageId = data.get("pid")
         userId = request.state.userId  # Assuming userId is passed in the request body
         txnid = f"TXN{int(time.time() * 1000)}{random.randint(1000, 9999)}"
