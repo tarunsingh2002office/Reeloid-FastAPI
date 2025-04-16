@@ -1,8 +1,8 @@
-from fastapi import Request
+from fastapi import Request, Depends
 from fastapi.responses import JSONResponse
 from core.database import adsCollection
-
-async def getAds(request:Request, path, sessionType):
+from helper_function.apis_requests import get_current_user
+async def getAds(request:Request, path, sessionType,token: str = Depends(get_current_user)):
 
     if not path:
         return JSONResponse({"msg": "path is not present"}, status_code=400)
