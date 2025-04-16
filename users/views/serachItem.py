@@ -1,20 +1,15 @@
-from fastapi import Request, Depends, Body
+from fastapi import Request, Depends,Query
 from fastapi.responses import JSONResponse
 from core.database import movies_collection
 from helper_function.apis_requests import get_current_user
-async def serachItem(request: Request,token: str = Depends(get_current_user),body: dict = Body(
-        example={
-            "name": "abcd"
-        }
-    )):
-    body = await request.json()
-    if not body:
+async def serachItem(request: Request,token: str = Depends(get_current_user),
+                     name: str = Query(...)):
+    if not name:
         return JSONResponse(
             {"msg": "searched item is invalid", "status": False}, status_code=404
         )
-    searchedItem = body.get("name")
     searchedResult = movies_collection.find(
-        {"name": {"$regex": searchedItem, "$options": "i"}},
+        {"name": {"$regex": name, "$options": "i"}},
         {"_id": 1, "name": 1, "fileLocation": 1},
     )
 
