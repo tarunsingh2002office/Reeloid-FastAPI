@@ -28,9 +28,31 @@ async def getUserWatchHistory(request:Request,token: str = Depends(get_current_u
 
         history = []
         for watchHistory in userWatchHistory:
-            watchHistory["movieDetails"] = movies_collection.find_one({"_id":ObjectId(watchHistory["moviesId"])},{"_id":0,"name":1,"fileLocation":1})
+            movieDetail = movies_collection.find_one(
+                {"_id": ObjectId(watchHistory["moviesId"])},
+                {"_id": 0, "name": 1, "fileLocation": 1, "screenType": 1}
+            )
+            movieDetail = {
+                "name": movieDetail.get("name") if movieDetail else None,
+                "fileLocation": movieDetail.get("fileLocation") if movieDetail else None,
+                "screenType": movieDetail.get("screenType") if movieDetail else None,
+            }
+            watchHistory["movieDetail"] = movieDetail
             history.append(watchHistory)
 
         return JSONResponse({"userWatchHistory": history}, status_code=200)
     except Exception as err:
         return JSONResponse({"msg": str(err)}, status_code=500)
+
+'''
+movieId: '676023b39dcc378e1a228008',
+userId: '67ced2045978de1e6bfbc379,
+'currentShortId: '676026d4f30dc0f458ce72c2,
+'timestamp: '0',
+movieDetail: {
+        name: 'Half Day',
+        fileLocation: 'uploads/thumbnail/Half Day-thumbnail_1734353699667.png',
+        screenType: "vertical"
+            }
+
+'''
