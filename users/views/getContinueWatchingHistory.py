@@ -33,9 +33,9 @@ async def getUserWatchHistory(request:Request,token: str = Depends(get_current_u
                 {"_id": 0, "name": 1, "fileLocation": 1, "screenType": 1}
             )
             movieDetail = {
-                "name": movieDetail.get("name") if movieDetail else None,
-                "fileLocation": movieDetail.get("fileLocation") if movieDetail else None,
-                "screenType": movieDetail.get("screenType") if movieDetail else None,
+                "name": movieDetail.get("name") if movieDetail else "None",
+                "fileLocation": movieDetail.get("fileLocation") if movieDetail else "None",
+                "screenType": movieDetail.get("screenType") if movieDetail else "None",
             }
             watchHistory["movieDetail"] = movieDetail
             history.append(watchHistory)
