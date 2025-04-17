@@ -19,8 +19,7 @@ class AccessTokenAuthenticatorMiddleware(BaseHTTPMiddleware):
             "/user/googleAuth/",
             "/docs", 
             "/redoc",  
-            "/openapi.json"
-
+            "/openapi.json",
             "/user/forgotPassword",
             "/check",
             "/payment/success",
