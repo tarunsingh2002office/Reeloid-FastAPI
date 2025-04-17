@@ -8,6 +8,8 @@ class AccessTokenAuthenticatorMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Define excluded paths
         excluded_paths = [
+            "/utils/drm_stream/{video_id}/",
+            "/utils/drm_stream/{video_id}",
             "/user/verifyOtp",
             "/user/verifyOtp/",
             "/user/forgotPassword/",

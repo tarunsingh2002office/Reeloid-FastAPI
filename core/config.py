@@ -74,7 +74,12 @@ class PAYUSettings(BaseSettings):
     class Config:
         env_file = ".env"
         extra = "ignore"  # Ignore extra fields in the .env file
-
+class tokenkey(BaseSettings):
+    TENANT_KEY: str
+    MEDIA_ROOT: str
+    class Config:    
+        env_file = ".env"
+        extra = "ignore"
 
 # Instantiate settings
 base_settings = BaseAppSettings()
@@ -85,6 +90,8 @@ app_settings = AppSettings()
 jwt_settings = JWTSettings()
 google_settings = GoogleAuthSettings()
 payu_settings = PAYUSettings()
+TENANT_KEY = tokenkey()
+
 
 # if __name__ == "__main__":
 #     print(base_settings.BASE_DIR)

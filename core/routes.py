@@ -2,6 +2,7 @@ from fastapi import APIRouter
 from payments.paymentRoutes import payment_router
 from users.userRoutes import user_router
 from sliders.sliderRoutes import slider_router
+from utils.utilsRoute import router
 
 api_router = APIRouter()
 
@@ -9,3 +10,4 @@ api_router = APIRouter()
 api_router.include_router(payment_router)
 api_router.include_router(user_router)
 api_router.include_router(slider_router)
+api_router.include_router(router)
