@@ -1,10 +1,9 @@
-from fastapi import Depends, Form, Request
+from fastapi import Form, Request
 from fastapi.responses import JSONResponse
-from helper_function.apis_requests import get_current_user
 from core.database import paidMintsBuyerCollection, client
 from helper_function.addPointsToProfile import addPointsToProfile
 
-async def paymentSuccess(request: Request, token: str = Depends(get_current_user)
+async def paymentSuccess(request: Request
                         #  ,body: dict = Body(...
         # example={
         #     "txnid": "12334",

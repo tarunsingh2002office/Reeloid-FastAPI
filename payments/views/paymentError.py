@@ -1,9 +1,8 @@
-from fastapi import Request, Form, Depends, Body
+from fastapi import Request, Form, Body
 from fastapi.responses import JSONResponse
 from core.database import paidMintsBuyerCollection
-from helper_function.apis_requests import get_current_user
 from core.config import payu_settings
-async def paymentError(request: Request, token: str = Depends(get_current_user)
+async def paymentError(request: Request
     #                    ,body: dict = Body(...
     #     # example={
     #     #     "txnid": "12334",
