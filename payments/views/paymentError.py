@@ -25,6 +25,8 @@ async def paymentError(request: Request
     pa_name: str = Form(""),
     error_Message: str = Form("Payment Failed", alias="error_Message")
     ):
+    print("Request received")  # Debugging log
+    print(f"txnid: {txnid}, mihpayid: {mihpayid}")  # Debugging log
     PAYU_KEY = payu_settings.PAYU_KEY
     PAYU_SALT = payu_settings.PAYU_SALT
     # Extract form data
