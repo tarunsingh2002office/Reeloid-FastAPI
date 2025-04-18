@@ -10,11 +10,9 @@ def checkSignedVideo(url):
             return
         removeDomainFromURl = urlparse(url).path
         extractNecessaryData = removeDomainFromURl.rsplit("/", 1)[0] + "/"
-        print(extractNecessaryData)
         Key = "vjhje15uZQUZrWhgflzy"
 
         current_timestamp = int(time.time())
-        print(current_timestamp)
         # Step 2: Add 60 seconds (1 minute) to the current timestamp
         next_minute_timestamp = current_timestamp + 30
 

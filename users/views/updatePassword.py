@@ -59,7 +59,6 @@ async def updatePassword(request:Request,token: str = Depends(get_current_user),
             {"$set": {"password": hashedPassword}},
             projection={"name": True, "email": True},
         )
-        print(updatedPassword)
         updatedPasswordConfirmation(
             {
                 "name": updatedPassword.get("name"),

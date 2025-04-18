@@ -11,5 +11,4 @@ def passwordEncryption(password):
             raise ValueError("password Encryption problem")
         return hashedPassword.decode("utf-8")
     except Exception as err:
-        print(err,"err")
         raise ValueError(str(err))

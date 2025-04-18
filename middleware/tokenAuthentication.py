@@ -9,26 +9,13 @@ class AccessTokenAuthenticatorMiddleware(BaseHTTPMiddleware):
         # Define excluded paths
         excluded_paths = [
             "/user/verifyOtp",
-            # "/user/verifyOtp/",
-            # "/user/forgotPassword/",
-            # "/check/",
-            # "/payment/success/",
-            # "/payment/error/",
-            # "/user/signIn/",
-            # "/user/register/",
-            # "/user/googleAuth/",
-            # "/docs/", 
-            # "/redoc/",  
-            # "/openapi.json/",
-            
+            "/payment/success/",
+            "/payment/error/",
             "/user/forgotPassword",
             "/check",
-            "/payment/success",
-            "/payment/error",
             "/user/signIn",
             "/user/register",
             "/user/googleAuth",
-            "/user/googleAuth/",
             "/docs",  
             "/redoc",  
             "/openapi.json"

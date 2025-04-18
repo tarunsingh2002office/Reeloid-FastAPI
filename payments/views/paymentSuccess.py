@@ -23,8 +23,6 @@ async def paymentSuccess(request: Request
     PG_TYPE: str = Form(""),
     pa_name: str = Form("")
     ):
-    print("Request received")  # Debugging log
-    print(f"txnid: {txnid}, mihpayid: {mihpayid}")  # Debugging log
     # Extract form data
     # txnid = body.get("txnid")
     # mihpayid = body.get("mihpayid") or ""
