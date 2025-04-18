@@ -13,8 +13,8 @@ def serialize_datetime(obj):
     return obj
 async def signIn(request: Request,body: dict = Body(
         example={
-            "email": "a@gmail.com",
-            "password": "1234",
+            "email": "tarunsingh2002office@gmail.com",
+            "password": "123456",
         }
     )):
     try:

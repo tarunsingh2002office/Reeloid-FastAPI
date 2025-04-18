@@ -4,10 +4,14 @@ from core.database import (
     userReactionLogs,
     users_collection,
 )
-from fastapi import Depends,Request
+from fastapi import Depends,Request, Body
 from helper_function.apis_requests import get_current_user
 
-async def unlikeVideo(request:Request, token: str = Depends(get_current_user)):
+async def unlikeVideo(request:Request, token: str = Depends(get_current_user),body: dict = Body(
+        example={
+            "shortsId": "1234"
+        }
+    )):
     
     body = await request.json()
     userId = request.state.userId
