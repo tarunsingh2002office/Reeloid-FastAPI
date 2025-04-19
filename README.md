@@ -20,13 +20,16 @@ Reeloid is a **FastAPI-based backend** designed to support the Reeloid app. It p
 ## 🛠️ Installation Guide (Windows, Ubuntu/Linux, macOS)
 
 ### **1️⃣ Clone the Repository**
+
 Run the following command in **CMD (Windows)** or **Terminal (Linux/macOS)**:
+
 ```sh
 git clone https://github.com/tarunsingh2002office/Reeloid-FastAPI.git
 cd Reeloid-FastAPI
 ```
 
 ### **2️⃣ Create a Virtual Environment**
+
 - **For Windows (CMD or PowerShell)**:
   ```sh
   python -m venv venv
@@ -39,12 +42,15 @@ cd Reeloid-FastAPI
   ```
 
 ### **3️⃣ Install Dependencies**
+
 ```sh
 pip install -r requirements.txt
 ```
 
 ### **4️⃣ Set Up Environment Variables**
+
 Create a `.env` file in the project root and add:
+
 ```env
 SUGAR_VALUE=
 
@@ -65,7 +71,9 @@ PAYU_KEY=
 ```
 
 ### **5️⃣ Run the Development Server**
+
 Run the following command:
+
 ```sh
 python main.py
 ```
@@ -77,7 +85,9 @@ Your backend should now be running at **`http://localhost:8000/docs#/`** 🎉
 ## ⚡ **Celery & Redis Setup (Task Queue Management)**
 
 ### **1️⃣ Start Redis Server**
+
 Ensure Redis is running before starting Celery:
+
 - **On Ubuntu/Linux/macOS**:
   ```sh
   sudo systemctl start redis
@@ -88,7 +98,9 @@ Ensure Redis is running before starting Celery:
   ```
 
 ### **2️⃣ Start Celery Workers**
+
 #### 🔹 **Run a Single Worker**
+
 - **For Ubuntu/Linux/macOS**:
   ```sh
   celery -A reeloid_backend worker --loglevel=info
@@ -99,6 +111,7 @@ Ensure Redis is running before starting Celery:
   ```
 
 #### 🔹 **Run Celery with Multiple Workers (Concurrency)**
+
 - **For Ubuntu/Linux/macOS**:
   ```sh
   celery -A reeloid_backend worker --loglevel=info --concurrency=4
@@ -109,30 +122,35 @@ Ensure Redis is running before starting Celery:
   ```
 
 ### **3️⃣ Start Celery Beat (for Scheduled Tasks)**
+
 ```sh
 celery -A reeloid_backend beat --loglevel=info
 ```
 
 ### **4️⃣ Start Celery Flower (Task Monitoring)(skippable)**
+
 To monitor Celery tasks via a **web interface**, install **Flower** and run:
+
 ```sh
 pip install flower
 celery -A reeloid_backend flower
 ```
+
 Access Flower at: **`http://localhost:5555`**
 
 ---
 
 ## 🔥 API Endpoints
 
-| Method | Endpoint | Description |
-|--------|---------|-------------|
-| `GET`  | `/api/users/` | Retrieve all users |
-| `POST` | `/api/users/` | Create a new user |
-| `GET`  | `/api/tasks/` | Retrieve assigned check-in tasks |
-| `POST` | `/api/tasks/complete/` | Mark a task as completed |
+| Method | Endpoint               | Description                      |
+| ------ | ---------------------- | -------------------------------- |
+| `GET`  | `/api/users/`          | Retrieve all users               |
+| `POST` | `/api/users/`          | Create a new user                |
+| `GET`  | `/api/tasks/`          | Retrieve assigned check-in tasks |
+| `POST` | `/api/tasks/complete/` | Mark a task as completed         |
 
 For more details, check out the **Swagger API Docs**:
+
 ```sh
 http://127.0.0.1:8000/swagger/
 ```
@@ -180,6 +198,8 @@ This project is licensed under the **MIT License**.
 - **GitHub:** [@TarunSingh](https://github.com/tarunsingh2002office)
 - **Email:** tarunsingh2002office@gmail.com
 
----
-🚀 **Happy Coding!**
+- changes by vivek -> collaborator and team member
 
+---
+
+🚀 **Happy Coding!**
