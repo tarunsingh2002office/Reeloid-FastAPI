@@ -48,22 +48,22 @@ async def googleAuth(request: Request, body: dict = Body(
 
             if userResponse:
                 # Serialize the userResponse document
-                userResponse = serialize_document(userResponse)
+                userResponse = await serialize_document(userResponse)
 
-                updatedUserResponse, token = updateLoginStatus(
+                updatedUserResponse, token = await updateLoginStatus(
                     userResponse, fcmtoken, deviceType
                 )
 
                 return JSONResponse(
                     {
                         "msg": "google authentication done......user is already registered with us",
-                        "userData": serialize_document(updatedUserResponse),
+                        "userData": await serialize_document(updatedUserResponse),
                         "token": token,
                     }
                 )
             else:
                 password = ""
-                saveUserInDataBase(
+                await saveUserInDataBase(
                     {"name": name, "email": email, "password": password}
                 )
                 getSavedUser = await users_collection.find_one(
@@ -71,16 +71,16 @@ async def googleAuth(request: Request, body: dict = Body(
                 )
                 if getSavedUser:
                     # Serialize the getSavedUser document
-                    getSavedUser = serialize_document(getSavedUser)
+                    getSavedUser = await serialize_document(getSavedUser)
 
-                    updatedUserResponse, token = updateLoginStatus(
+                    updatedUserResponse, token = await updateLoginStatus(
                         getSavedUser, fcmtoken, deviceType
                     )
-                    emailSender({"name": name, "email": email, "type": "direct"})
+                    await emailSender({"name": name, "email": email, "type": "direct"})
                     return JSONResponse(
                         {
                             "msg": "google authentication done......registered a new account",
-                            "userData": serialize_document(updatedUserResponse),
+                            "userData": await serialize_document(updatedUserResponse),
                             "token": token,
                         }
                     )
