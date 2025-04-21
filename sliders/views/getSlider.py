@@ -14,7 +14,7 @@ async def getSliders(request:Request, token: str = Depends(get_current_user)):
         )
 
         # Convert the cursor to a list of serialized dictionaries
-        sliders_list = [serialize_document(slider) async for slider in sliders]
+        sliders_list = [await serialize_document(slider) async for slider in sliders]
         serialized_sliders = []
 
         for currentSlider in sliders_list:
@@ -35,7 +35,7 @@ async def getSliders(request:Request, token: str = Depends(get_current_user)):
                     sliderData["parts"] = sliderData.get("parts")
                     # Serialize the sliderData before appending
 
-                    serialized_sliders.append(serialize_document(sliderData))
+                    serialized_sliders.append(await serialize_document(sliderData))
                 # print(serialized_sliders)
 
         return JSONResponse({"sliders": serialized_sliders})

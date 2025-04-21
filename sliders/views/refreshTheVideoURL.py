@@ -10,7 +10,7 @@ async def refreshTheVideoURL(request:Request, token: str = Depends(get_current_u
 
     try:
         body = await request.json()
-        data = checkSignedVideo(body.get("url"))
+        data = await checkSignedVideo(body.get("url"))
         return JSONResponse({"data": data}, status_code=200)
     except Exception as e:
         return JSONResponse({"err": str(e)}, status_code=400)

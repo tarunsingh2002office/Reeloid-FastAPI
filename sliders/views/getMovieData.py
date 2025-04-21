@@ -29,7 +29,7 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
         shorts = []
 
         if data:
-            data = serialize_document(data)
+            data = await serialize_document(data)
             await movies_collection.update_one(
                 {"_id": ObjectId(movieID)}, {"$inc": {"views": 1}}
             )
@@ -40,10 +40,10 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
             high = data.get("high")
             shorts.append(
                 {
-                    "trailerUrl": checkSignedVideo(trailerUrl),
-                    "low": checkSignedVideo(low),
-                    "medium": checkSignedVideo(medium),
-                    "high": checkSignedVideo(high),
+                    "trailerUrl": await checkSignedVideo(trailerUrl),
+                    "low": await checkSignedVideo(low),
+                    "medium": await checkSignedVideo(medium),
+                    "high": await checkSignedVideo(high),
                 }
             )  
             if data.get("shorts"):
@@ -64,8 +64,8 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
                         )
 
                         if shortsData:
-                            shortsData = serialize_document(shortsData)
-                            purchased = checkPurchasedVideoData(
+                            shortsData = await serialize_document(shortsData)
+                            purchased = await checkPurchasedVideoData(
                                 currentShortsID, userId
                             )
                             
@@ -80,17 +80,17 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
                             )
                             
                             shortsData["_id"] = str(shortsData["_id"])
-                            shortsData["low"] = checkSignedVideo(
+                            shortsData["low"] = await checkSignedVideo(
                                 shortsData.get("low")
                             )
                             shortsData["medium"] = (
                                 purchased
-                                and checkSignedVideo(shortsData.get("medium"))
+                                and await checkSignedVideo(shortsData.get("medium"))
                                 or "Not Purchased"
                             )
                             shortsData["high"] = (
                                 purchased
-                                and checkSignedVideo(shortsData.get("high"))
+                                and await checkSignedVideo(shortsData.get("high"))
                                 or "Not Purchased"
                             )
                             shortsData["reaction"] = (

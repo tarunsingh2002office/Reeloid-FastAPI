@@ -84,8 +84,8 @@ async def purchasePremiumVideo(request:Request, token: str = Depends(get_current
             session.commit_transaction()
             return JSONResponse(
                 {
-                    "medium": checkSignedVideo(shortsData.get("medium")),
-                    "high": checkSignedVideo(shortsData.get("high")),
+                    "medium": await checkSignedVideo(shortsData.get("medium")),
+                    "high": await checkSignedVideo(shortsData.get("high")),
                 },
                 status_code=200,
             )
