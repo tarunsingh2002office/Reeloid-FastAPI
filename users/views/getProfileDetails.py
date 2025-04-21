@@ -16,7 +16,7 @@ async def getProfileDetails(request: Request, token: str = Depends(get_current_u
             return JSONResponse({"userDetails": []}, status_code=200)
 
         # Serialize the userDetails document
-        userDetails = serialize_document(userDetails)
+        userDetails = await serialize_document(userDetails)
 
         genreList = []
         if "selectedGenre" in userDetails and userDetails["selectedGenre"]:
@@ -25,7 +25,7 @@ async def getProfileDetails(request: Request, token: str = Depends(get_current_u
                     {"_id": ObjectId(genreId)}, {"_id": 1, "name": 1, "icon": 1}
                 )
                 if genreData:
-                    serialized_genreData =serialize_document(genreData)
+                    serialized_genreData =await serialize_document(genreData)
                     genreList.append(serialized_genreData)
         userDetails["selectedGenre"] = genreList
 
@@ -36,7 +36,7 @@ async def getProfileDetails(request: Request, token: str = Depends(get_current_u
                     {"_id": ObjectId(languageId)}, {"_id": 1, "name": 1}
                 )
                 if languageData:
-                    serialized_languageData = serialize_document(languageData)
+                    serialized_languageData = await serialize_document(languageData)
                     languageList.append(serialized_languageData)
         userDetails["selectedLanguages"] = languageList
 
