@@ -33,7 +33,7 @@ async def getBookMark(request:Request, token: str = Depends(get_current_user)):
                         )
 
                         if shortsData:
-                            serialized_shortsData = serialize_document(shortsData)
+                            serialized_shortsData = await serialize_document(shortsData)
                             bookMarkData.append(serialized_shortsData)
 
 

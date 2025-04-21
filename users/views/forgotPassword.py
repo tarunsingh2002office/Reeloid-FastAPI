@@ -60,7 +60,7 @@ async def forgotPassword(request:Request,body: dict = Body(
             },
             session=session,
         )
-        forgotPasswordEmailSender(
+        await forgotPasswordEmailSender(
             {
                 "name": existing_user["name"],
                 "otp": otp,

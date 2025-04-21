@@ -51,7 +51,7 @@ async def updatePassword(request:Request,token: str = Depends(get_current_user),
             return JSONResponse(
                 {"msg": "Password already changed with given request"}, status_code=400
             )
-        hashedPassword = passwordEncryption(password)
+        hashedPassword = await passwordEncryption(password)
         updatedPassword = await users_collection.find_one_and_update(
             {
                 "_id": ObjectId(userId),
@@ -59,7 +59,7 @@ async def updatePassword(request:Request,token: str = Depends(get_current_user),
             {"$set": {"password": hashedPassword}},
             projection={"name": True, "email": True},
         )
-        updatedPasswordConfirmation(
+        await updatedPasswordConfirmation(
             {
                 "name": updatedPassword.get("name"),
                 "email": updatedPassword.get("email"),

@@ -72,7 +72,7 @@ async def collectCheckInPoint(request:Request,
                 )
 
                 if taskPoints:
-                    addPointsToProfile(
+                    await addPointsToProfile(
                         userId, taskPoints.get("allocatedPoints"), session
                     )
                     session.commit_transaction()

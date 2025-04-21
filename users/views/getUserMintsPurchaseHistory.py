@@ -38,7 +38,7 @@ async def getUserMintPurchaseHistory(request:Request,token: str = Depends(get_cu
         if not userMintsPurchaseHistory:
             return JSONResponse({"msg": "no purchase history found"}, status_code=400)
 
-        history = [serialize_document(planPurchaseData) async for planPurchaseData in userMintsPurchaseHistory]
+        history = [await serialize_document(planPurchaseData) async for planPurchaseData in userMintsPurchaseHistory]
 
         return JSONResponse({"userMintsPurchaseHistory": history}, status_code=200)
     except Exception as err:

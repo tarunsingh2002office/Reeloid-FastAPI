@@ -32,7 +32,7 @@ async def verifyOtp(request:Request, body: dict = Body(
                 {"msg": "No request found for changing otp in previous 15 minutes"},
                 status_code=400,
             )
-        id = tokenCreator(
+        id = await tokenCreator(
                     {
                         "otpId": str(existing_Requests["_id"]),
                         "id": str(existing_Requests["userId"]),

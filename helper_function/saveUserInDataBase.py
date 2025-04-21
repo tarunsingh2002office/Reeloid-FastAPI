@@ -42,7 +42,7 @@ async def saveUserInDataBase(data):
         # userResponse["_id"]=str(userResponse["_id"])
 
         if userResponse:
-            checkInResponse = checkInPoints.find({}, {"_id": 1}).limit(7)
+            checkInResponse = checkInPoints.find({}, {"_id": 1}).sort("Day", 1).limit(7)
 
             allotedTask = []
             index=0
