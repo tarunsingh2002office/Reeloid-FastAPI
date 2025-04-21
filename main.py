@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Request
 from middleware.tokenAuthentication import AccessTokenAuthenticatorMiddleware
 from middleware.allowedHostsMiddleware import AllowedHostsMiddleware
-
+from middleware.timeMeasureMiddleware import ExecutionTimeMiddleware
 app = FastAPI()
 
 #Add the CORS middleware with the allowed origin
@@ -35,7 +35,7 @@ app.add_middleware(
 app.add_middleware(AllowedHostsMiddleware, allowed_hosts)
 # Add the custom middleware
 app.add_middleware(AccessTokenAuthenticatorMiddleware)
-# app.add_middleware(log_requests)
+app.add_middleware(ExecutionTimeMiddleware)
 # Include all routes
 app.include_router(api_router)
 
