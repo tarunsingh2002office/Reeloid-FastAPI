@@ -60,7 +60,7 @@ async def paymentSuccess(request: Request
             raise Exception("Transaction ID not found in database.")
 
         # Add points to the user's profile
-        addPointsToProfile(
+        await addPointsToProfile(
             paidMintsPlan.get("userId"), paidMintsPlan.get("quantity"), session
         )
 
