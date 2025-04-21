@@ -20,7 +20,7 @@ async def updateLoginStatus(userResponse, fcmtoken, deviceType):
 
         if updateLoggedInStatus:
             
-            token = tokenCreator({"id": str(userResponse["_id"])})
+            token =await tokenCreator({"id": str(userResponse["_id"])})
             genreList = []
             if "selectedGenre" in userResponse and userResponse["selectedGenre"]:
                 for genreId in userResponse["selectedGenre"]:

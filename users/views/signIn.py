@@ -45,7 +45,7 @@ async def signIn(request: Request,body: dict = Body(
         try:
             storedPAssword = userResponse.get("password")
             
-            password_match = verifyPassword(password, storedPAssword)
+            password_match = await verifyPassword(password, storedPAssword)
 
             if not password_match:
                 return JSONResponse(
@@ -55,7 +55,7 @@ async def signIn(request: Request,body: dict = Body(
                     status_code=401,
                 )
             del userResponse["password"]
-            updatedUserResponse, token = updateLoginStatus(
+            updatedUserResponse, token = await updateLoginStatus(
                 userResponse, fcmtoken, deviceType
             )
             # Serialize datetime fields in the response
