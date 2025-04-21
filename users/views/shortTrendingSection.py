@@ -13,13 +13,13 @@ async def TrailerTrendingSection(request:Request,token: str = Depends(get_curren
         .limit(10)
     )
     moviesArray = []
-    for movie in moviesData:
+    async for movie in moviesData:
 
         movie["_id"] = str(movie["_id"])
         shortsArray = []
         for shortid in movie["shorts"]:
             if shortid != "Ads":
-                shortsData = shorts_collection.find_one(
+                shortsData = await shorts_collection.find_one(
                     {"_id": shortid, "visible": True},
                     {"_id": 1, "name": 1, "fileLocation": 1},
                 )

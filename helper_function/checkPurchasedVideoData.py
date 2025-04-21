@@ -1,8 +1,8 @@
 from core.database import videoPurchasedLogs
 
-def checkPurchasedVideoData(videoId, userId):
+async def checkPurchasedVideoData(videoId, userId):
     try:
-        videoData = videoPurchasedLogs.find_one(
+        videoData = await videoPurchasedLogs.find_one(
             {"shorts_Id": str(videoId), "user_Id": str(userId)}
         )
 

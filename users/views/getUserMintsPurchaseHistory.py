@@ -15,7 +15,7 @@ async def getUserMintPurchaseHistory(request:Request,token: str = Depends(get_cu
         if not userId:
             return JSONResponse({"msg": "userId is missing"}, status_code=400)
 
-        userDetails = users_collection.find_one(
+        userDetails = await users_collection.find_one(
             {"_id": ObjectId(userId)},
             {"password": 0},
         )
@@ -38,7 +38,7 @@ async def getUserMintPurchaseHistory(request:Request,token: str = Depends(get_cu
         if not userMintsPurchaseHistory:
             return JSONResponse({"msg": "no purchase history found"}, status_code=400)
 
-        history = [serialize_document(planPurchaseData) for planPurchaseData in userMintsPurchaseHistory]
+        history = [serialize_document(planPurchaseData) async for planPurchaseData in userMintsPurchaseHistory]
 
         return JSONResponse({"userMintsPurchaseHistory": history}, status_code=200)
     except Exception as err:

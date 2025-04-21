@@ -2,7 +2,7 @@ import time
 import hashlib
 from urllib.parse import urlparse
 
-def checkSignedVideo(url):
+async def checkSignedVideo(url):
     try:
         return url # remove this line when you want to generate a signed url i am just using this return because of some ongoing functionality testing
         url = url

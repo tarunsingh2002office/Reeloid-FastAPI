@@ -28,7 +28,7 @@ async def genreSelection(request:Request, token: str = Depends(get_current_user)
     afterRemovingWrongGenre = []
     for genreId in selectedGenre:
         if ObjectId.is_valid(genreId):
-            validGenre = genre_collection.find_one({"_id": ObjectId(genreId)})
+            validGenre = await genre_collection.find_one({"_id": ObjectId(genreId)})
             if validGenre:
                 afterRemovingWrongGenre.append(genreId)
 
@@ -37,7 +37,7 @@ async def genreSelection(request:Request, token: str = Depends(get_current_user)
             {"msg": "no genre is selected,please select a genre"}, status_code=400
         )
 
-    updatedData = users_collection.update_one(
+    updatedData = await users_collection.update_one(
         {"_id": ObjectId(userId)},
         {"$set": {"selectedGenre": afterRemovingWrongGenre}},
     )

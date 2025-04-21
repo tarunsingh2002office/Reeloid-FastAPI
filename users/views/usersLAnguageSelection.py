@@ -25,7 +25,7 @@ async def usersLanguaseSelection(request:Request,token:str=Depends(get_current_u
     afterRemovingWrongLanguage = []
     for languageId in selectedLanguages:
         if ObjectId.is_valid(languageId):
-            validGenre = languages_collection.find_one(
+            validGenre = await languages_collection.find_one(
                 {"_id": ObjectId(languageId)}
             )
             if validGenre:
@@ -35,7 +35,7 @@ async def usersLanguaseSelection(request:Request,token:str=Depends(get_current_u
             {"msg": "no language is selected,please select a language first"},
             status_code=400,
         )
-    updatedData = users_collection.update_one(
+    updatedData = await users_collection.update_one(
         {"_id": ObjectId(userId)},
         {"$set": {"selectedLanguages": afterRemovingWrongLanguage}},
     )

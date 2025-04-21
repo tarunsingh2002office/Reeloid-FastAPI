@@ -33,7 +33,7 @@ async def collectCheckInPoint(request:Request,
             return JSONResponse({"msg": "Invalid user "}, status_code=404)
         # Try to update the task status to "Completed"
         current_date_str = datetime.today().strftime("%d/%m/%Y")
-        taskPresent = dailyCheckInTask_collection.find_one(
+        taskPresent = await dailyCheckInTask_collection.find_one(
             {
                 "_id": ObjectId(taskId),
                 "assignedUser": userId,
@@ -42,7 +42,7 @@ async def collectCheckInPoint(request:Request,
         )
         if not taskPresent:
             return JSONResponse({"msg": "Task not found"}, status_code=404)
-        session = client.start_session()
+        session = await client.start_session()
         session.start_transaction()
 
         obtainable_str = taskPresent.get("obtainable")  # e.g., "31/01/2025"
@@ -53,7 +53,7 @@ async def collectCheckInPoint(request:Request,
         current_date = datetime.strptime(current_date_str, "%d/%m/%Y")
 
         if current_date >= obtainable:
-            taskIsPresent = dailyCheckInTask_collection.find_one_and_update(
+            taskIsPresent = await dailyCheckInTask_collection.find_one_and_update(
                 {
                     "_id": ObjectId(taskId),
                     "assignedUser": userId,
@@ -65,7 +65,7 @@ async def collectCheckInPoint(request:Request,
             # print(taskIsPresent)
             if taskIsPresent:
 
-                taskPoints = checkInPoints.find_one(
+                taskPoints = await checkInPoints.find_one(
                     {"_id": ObjectId(taskIsPresent.get("assignedTaskId"))},
                     {"allocatedPoints": 1},
                     session=session,

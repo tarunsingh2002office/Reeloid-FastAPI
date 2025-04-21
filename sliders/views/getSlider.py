@@ -14,7 +14,7 @@ async def getSliders(request:Request, token: str = Depends(get_current_user)):
         )
 
         # Convert the cursor to a list of serialized dictionaries
-        sliders_list = [serialize_document(slider) for slider in sliders]
+        sliders_list = [serialize_document(slider) async for slider in sliders]
         serialized_sliders = []
 
         for currentSlider in sliders_list:
@@ -22,7 +22,7 @@ async def getSliders(request:Request, token: str = Depends(get_current_user)):
             if "linkedMovie" in currentSlider and currentSlider["linkedMovie"]:
                 # Query the linked movie using its ObjectId
 
-                sliderData = movies_collection.find_one(
+                sliderData = await movies_collection.find_one(
                     {"_id": ObjectId(currentSlider["linkedMovie"]),"visible": True},
                     {"name": 1, "fileLocation": 1, "trailerUrl": 1, "parts": 1,"screenType":1},
                 )

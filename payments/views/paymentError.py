@@ -1,4 +1,4 @@
-from fastapi import Request, Form, Body
+from fastapi import Request, Form
 from fastapi.responses import JSONResponse
 from core.database import paidMintsBuyerCollection
 from core.config import payu_settings
@@ -32,7 +32,7 @@ async def paymentError(request: Request
     
     try:
         # Update the database
-        paidMintsPlan = paidMintsBuyerCollection.find_one_and_update(
+        paidMintsPlan = await paidMintsBuyerCollection.find_one_and_update(
             {"txnid": str(txnid)},
             {
                 "$set": {

@@ -7,9 +7,9 @@ from core.database import (
     languages_collection,
 )
 
-def updateLoginStatus(userResponse, fcmtoken, deviceType):
+async def updateLoginStatus(userResponse, fcmtoken, deviceType):
     try:
-        updateLoggedInStatus = users_collection.update_one(
+        updateLoggedInStatus = await users_collection.update_one(
             {"_id": userResponse["_id"]}, {"$set": {"loggedInBefore": True}}
         )
         if not updateLoggedInStatus:
@@ -24,7 +24,7 @@ def updateLoginStatus(userResponse, fcmtoken, deviceType):
             genreList = []
             if "selectedGenre" in userResponse and userResponse["selectedGenre"]:
                 for genreId in userResponse["selectedGenre"]:
-                    genreData = genre_collection.find_one(
+                    genreData = await genre_collection.find_one(
                         {"_id": ObjectId(genreId)}, {"_id": 1, "name": 1, "icon": 1}
                     )
                     genreData["_id"] = str(genreData["_id"])
@@ -37,14 +37,14 @@ def updateLoginStatus(userResponse, fcmtoken, deviceType):
                 and userResponse["selectedLanguages"]
             ):
                 for languageId in userResponse["selectedLanguages"]:
-                    languageData = languages_collection.find_one(
+                    languageData = await languages_collection.find_one(
                         {"_id": ObjectId(languageId)}, {"_id": 1, "name": 1}
                     )
                     languageData["_id"] = str(languageData["_id"])
                     languageList.append(languageData)
             userResponse["selectedLanguages"] = languageList
             if not userResponse.get("Devices"):
-                updatedResponse = users_collection.update_one(
+                updatedResponse = await users_collection.update_one(
                     {"_id": ObjectId(userResponse["_id"])},
                     {
                         "$set": {
@@ -75,7 +75,7 @@ def updateLoginStatus(userResponse, fcmtoken, deviceType):
                             "lastUpdated": datetime.now(timezone.utc),
                         }
                     )
-                    updatedResponse = users_collection.update_one(
+                    updatedResponse = await users_collection.update_one(
                         {"_id": ObjectId(userResponse["_id"])},
                         {"$set": {"Devices": userDevices}},
                     )

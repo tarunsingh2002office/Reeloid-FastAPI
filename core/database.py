@@ -1,4 +1,4 @@
-from pymongo import MongoClient
+from motor.motor_asyncio import AsyncIOMotorClient as MongoClient
 from core.config import db_settings
 
 # Create a MongoDB client

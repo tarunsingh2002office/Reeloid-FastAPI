@@ -7,7 +7,7 @@ from datetime import datetime, timezone, timedelta
 from helper_function.passwordEncryption import passwordEncryption
 
 
-def saveUserInDataBase(data):
+async def saveUserInDataBase(data):
 
     try:
         name = data.get("name")
@@ -21,9 +21,9 @@ def saveUserInDataBase(data):
         new_date = today + timedelta(days=7)
         next_allocation = new_date.strftime("%d/%m/%Y")
         current_date = datetime.today()
-        hashedPassword = passwordEncryption(password)
+        hashedPassword = await passwordEncryption(password)
 
-        userResponse = users_collection.insert_one(
+        userResponse = await users_collection.insert_one(
             {
                 "name": name,
                 "email": email,
@@ -42,10 +42,11 @@ def saveUserInDataBase(data):
         # userResponse["_id"]=str(userResponse["_id"])
 
         if userResponse:
-            checkInResponse = list(checkInPoints.find({}, {"_id": 1}).limit(7))
+            checkInResponse = checkInPoints.find({}, {"_id": 1}).limit(7)
 
             allotedTask = []
-            for index, checkInData in enumerate(checkInResponse):
+            index=0
+            async for checkInData in checkInResponse:
 
                 new_task = {
                     "assignedTaskId": str(checkInData.get("_id")),
@@ -56,13 +57,14 @@ def saveUserInDataBase(data):
                     ),
                 }
                 allotedTask.append(new_task)
+                index+=1
 
             if allotedTask:
-                dailyAllocationResponse = dailyCheckInTask_collection.insert_many(
+                dailyAllocationResponse = await dailyCheckInTask_collection.insert_many(
                     allotedTask, session=data.get("session")
                 )
                 if dailyAllocationResponse:
-                    users_collection.find_one_and_update(
+                    await users_collection.find_one_and_update(
                         {"_id": user_id},
                         {
                             "$set": {

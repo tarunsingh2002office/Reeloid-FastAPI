@@ -1,7 +1,7 @@
 import jwt
 from core.config import jwt_settings
 
-def tokenCreator(data):
+async def tokenCreator(data):
 
     try:
         SUGAR_VALUE = jwt_settings.SUGAR_VALUE

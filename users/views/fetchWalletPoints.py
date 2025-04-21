@@ -5,7 +5,7 @@ from core.database import users_collection
 from helper_function.apis_requests import get_current_user
 async def fetchWalletPoints(request:Request, token: str = Depends(get_current_user)):
     userId = request.state.userId
-    userData = users_collection.find_one(
+    userData = await users_collection.find_one(
         {"_id": ObjectId(userId)}, {"allocatedPoints": 1, "_id": 1}
     )
 

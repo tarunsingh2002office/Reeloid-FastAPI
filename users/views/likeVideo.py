@@ -35,15 +35,15 @@ async def likeVideo(request:Request,token: str = Depends(get_current_user),body:
         try:
             if not ObjectId.is_valid(shortsId):
                 return JSONResponse({"msg": "Please provide a valid shorts ID"})
-            shorts = shorts_collection.find_one({"_id": ObjectId(shortsId)})
+            shorts = await shorts_collection.find_one({"_id": ObjectId(shortsId)})
             if not shorts:
                 return JSONResponse({"msg": "shorts not found"}, status_code=404)
 
-            user = users_collection.find_one({"_id": ObjectId(userId)})
+            user = await users_collection.find_one({"_id": ObjectId(userId)})
             if not user:
                 return JSONResponse({"msg": "User not found"}, status_code=404)
 
-            usersReactionResponse = userReactionLogs.find_one_and_update(
+            usersReactionResponse = await userReactionLogs.find_one_and_update(
                 {"shortsId": ObjectId(shortsId), "userId": ObjectId(userId)},
                 {"$set": {"reaction": reactionType}},
                 upsert=True,  

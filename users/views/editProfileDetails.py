@@ -21,7 +21,7 @@ async def editProfileDetails(request: Request, token: str = Depends(get_current_
 
         userId = request.state.userId
         
-        userDetails = users_collection.find_one_and_update(
+        userDetails = await users_collection.find_one_and_update(
             {"_id": ObjectId(userId)},
             {
                 "$set": {

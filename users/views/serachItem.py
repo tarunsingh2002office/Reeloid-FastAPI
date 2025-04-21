@@ -14,7 +14,7 @@ async def serachItem(request: Request,token: str = Depends(get_current_user),
     )
 
     moviesList = []
-    for data in searchedResult:
+    async for data in searchedResult:
 
         data["_id"] = str(data.get("_id"))
         moviesList.append(data)

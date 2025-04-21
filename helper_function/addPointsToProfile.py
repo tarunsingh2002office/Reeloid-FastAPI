@@ -1,11 +1,11 @@
 from bson import ObjectId
 from core.database import users_collection
 
-def addPointsToProfile(userId, allotedPoints, session):
+async def addPointsToProfile(userId, allotedPoints, session):
     try:
         if not session:
             raise ValueError("Please provide session for secure transaction")
-        updateUser = users_collection.update_one(
+        updateUser = await users_collection.update_one(
             {"_id": ObjectId(userId)},  # Ensure userId is an ObjectId
             {
                 "$inc": {"allocatedPoints": int(allotedPoints)}

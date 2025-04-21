@@ -30,15 +30,15 @@ async def forgotPassword(request:Request,body: dict = Body(
         # Check if a request was already made within the last minute
         one_min_ago = datetime.now(timezone.utc) - timedelta(minutes=1)
 
-        session = client.start_session()
+        session = await client.start_session()
         session.start_transaction()
-        existing_user = users_collection.find_one(
+        existing_user = await users_collection.find_one(
             {"email": email}, {"_id": 1, "name": 1}
         )
 
         if not existing_user:
             return JSONResponse({"msg": "you are not a valid user"}, status_code=429)
-        existing_request = forgotPasswordRequests.find_one(
+        existing_request = await forgotPasswordRequests.find_one(
             {
                 "userId": existing_user["_id"],
                 "createdTime": {"$gte": one_min_ago},
@@ -51,7 +51,7 @@ async def forgotPassword(request:Request,body: dict = Body(
             )
         otp = random.randint(100000, 999999)
         # Insert new request log
-        forgotPasswordRequests.insert_one(
+        await forgotPasswordRequests.insert_one(
             {
                 "userId": existing_user["_id"],
                 "createdTime": datetime.now(timezone.utc),

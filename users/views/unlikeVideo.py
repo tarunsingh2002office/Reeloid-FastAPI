@@ -22,11 +22,11 @@ async def unlikeVideo(request:Request, token: str = Depends(get_current_user),bo
         if not ObjectId.is_valid(shortsId):
             return JSONResponse({"msg": "Please provide a valid shorts ID"})
 
-        user = users_collection.find_one({"_id": ObjectId(userId)})
+        user = await users_collection.find_one({"_id": ObjectId(userId)})
         if not user:
             return JSONResponse({"msg": "User not found"}, status_code=404)
 
-        usersReactionResponse = userReactionLogs.find_one_and_delete(
+        usersReactionResponse = await userReactionLogs.find_one_and_delete(
             {"shortsId": ObjectId(shortsId), "userId": ObjectId(userId)},
         )
         if not usersReactionResponse:

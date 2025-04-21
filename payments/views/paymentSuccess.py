@@ -34,11 +34,11 @@ async def paymentSuccess(request: Request
 
     try:
         # Start a MongoDB session for transaction
-        session = client.start_session()
+        session = await client.start_session()
         session.start_transaction()
 
         # Update the database
-        paidMintsPlan = paidMintsBuyerCollection.find_one_and_update(
+        paidMintsPlan = await paidMintsBuyerCollection.find_one_and_update(
             {"txnid": str(txnid)},
             {
                 "$set": {

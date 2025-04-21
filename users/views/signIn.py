@@ -31,7 +31,7 @@ async def signIn(request: Request,body: dict = Body(
     if not password:
         return JSONResponse({"msg": "password is not present"}, status_code=400)
 
-    userResponse = users_collection.find_one({"email": email})
+    userResponse = await users_collection.find_one({"email": email})
 
     if not userResponse:
         return JSONResponse(

@@ -3,14 +3,14 @@ from fastapi.responses import JSONResponse
 from helper_function.apis_requests import get_current_user
 from core.database import layouts_collection, movies_collection
 
-def getLayouts(request:Request,token: str = Depends(get_current_user)):
+async def getLayouts(request:Request,token: str = Depends(get_current_user)):
 
     layoutsResult = layouts_collection.find(
         {"visible": True}, {"_id": 1, "linkedMovies": 1, "name": 1}
     )
 
     layOutsData = {}
-    for layout in layoutsResult:
+    async for layout in layoutsResult:
 
         currentLayoutObj = []
         linkedMovies = layout["linkedMovies"]
@@ -20,7 +20,7 @@ def getLayouts(request:Request,token: str = Depends(get_current_user)):
         )
         for currentMovie in linkedMovies:
             # print(currentMovie, "currentMovie")
-            movieData = movies_collection.find_one(
+            movieData = await movies_collection.find_one(
                 {"_id": currentMovie,"visible": True}, {"fileLocation": 1, "name": 1,"screenType":1}
             )
 

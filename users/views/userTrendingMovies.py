@@ -9,7 +9,7 @@ async def UserTrendingVideos(request:Request,token: str = Depends(get_current_us
         .limit(10)
     )
     trending_movies_list = []
-    for movies in trending_movies:
+    async for movies in trending_movies:
 
         movies["_id"] = str(movies["_id"])
         trending_movies_list.append(movies)

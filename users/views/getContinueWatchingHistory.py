@@ -12,7 +12,7 @@ async def getUserWatchHistory(request:Request,token: str = Depends(get_current_u
         if not userId:
             return JSONResponse({"msg": "userId is missing"}, status_code=400)
 
-        userDetails = users_collection.find_one(
+        userDetails = await users_collection.find_one(
             {"_id": ObjectId(userId)},
             {"password": 0},
         )
@@ -27,8 +27,8 @@ async def getUserWatchHistory(request:Request,token: str = Depends(get_current_u
             return JSONResponse({"msg": "no watch history found"}, status_code=400)
 
         history = []
-        for watchHistory in userWatchHistory:
-            movieDetail = movies_collection.find_one(
+        async for watchHistory in userWatchHistory:
+            movieDetail = await movies_collection.find_one(
                 {"_id": ObjectId(watchHistory["moviesId"])},
                 {"_id": 0, "name": 1, "fileLocation": 1, "screenType": 1}
             )

@@ -1,7 +1,7 @@
 from bson import ObjectId
 from datetime import datetime
 
-def serialize_document(document):
+async def serialize_document(document):
     """
     Recursively serializes a document by converting ObjectId and datetime objects to strings.
     Handles deeply nested dictionaries and lists.

@@ -17,7 +17,7 @@ async def purchasePremiumVideo(request:Request, token: str = Depends(get_current
 
         userId = request.state.userId
 
-        session = client.start_session()
+        session = await client.start_session()
         session.start_transaction()
         try:
             
@@ -25,7 +25,7 @@ async def purchasePremiumVideo(request:Request, token: str = Depends(get_current
 
             currentShortsID = bodyData.get("shortsID")
             
-            shortsData = shorts_collection.find_one(
+            shortsData = await shorts_collection.find_one(
                 {"_id": ObjectId(currentShortsID)}, session=session
             )
             
@@ -33,7 +33,7 @@ async def purchasePremiumVideo(request:Request, token: str = Depends(get_current
                 session.abort_transaction()
                 return JSONResponse({"err": "Invalid shorts Id"})
             videosPointsSpend = shortsData.get("purchasePoints") or 1
-            purchaseThisShorts = videoPurchasedLogs.insert_one(
+            purchaseThisShorts = await videoPurchasedLogs.insert_one(
                 {
                     "shorts_Id": currentShortsID,
                     "user_Id": (userId),
@@ -49,7 +49,7 @@ async def purchasePremiumVideo(request:Request, token: str = Depends(get_current
                     status_code=400,
                 )
             
-            user = users_collection.find_one(
+            user = await users_collection.find_one(
                 {"_id": ObjectId(userId)}, {"allocatedPoints": 1}, session=session
             )
             if not user:
@@ -67,7 +67,7 @@ async def purchasePremiumVideo(request:Request, token: str = Depends(get_current
                     },
                     status_code=400,
                 )
-            updateAllocationPoints = users_collection.update_one(
+            updateAllocationPoints = await users_collection.update_one(
                 {"_id": ObjectId(userId)},
                 {"$inc": {"allocatedPoints": -videosPointsSpend}},
                 session=session,

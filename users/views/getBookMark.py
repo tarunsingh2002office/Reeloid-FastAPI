@@ -9,7 +9,7 @@ async def getBookMark(request:Request, token: str = Depends(get_current_user)):
 
     userId = request.state.userId
     
-    user = users_collection.find_one(
+    user = await users_collection.find_one(
         {"_id": ObjectId(userId)},
     )
     if not user:
@@ -25,7 +25,7 @@ async def getBookMark(request:Request, token: str = Depends(get_current_user)):
 
                     if ObjectId.is_valid(shortsId):
 
-                        shortsData = shorts_collection.find_one(
+                        shortsData = await shorts_collection.find_one(
                             {
                                 "_id": ObjectId(shortsId),
                             },

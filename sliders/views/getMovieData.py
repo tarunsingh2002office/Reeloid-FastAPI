@@ -22,7 +22,7 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
 
         movieID = bodyData.get("movieID")
 
-        data = movies_collection.find_one(
+        data = await movies_collection.find_one(
             {"_id": ObjectId(movieID), "visible": True}
         )
 
@@ -30,7 +30,7 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
 
         if data:
             data = serialize_document(data)
-            movies_collection.update_one(
+            await movies_collection.update_one(
                 {"_id": ObjectId(movieID)}, {"$inc": {"views": 1}}
             )
 
@@ -47,7 +47,7 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
                 }
             )  
             if data.get("shorts"):
-                user = users_collection.find_one(
+                user = await users_collection.find_one(
                     {"_id": ObjectId(userId)}, {"allocatedPoints": 1}
                 )
 
@@ -58,18 +58,18 @@ async def getMovieData(request:Request, token: str = Depends(get_current_user),b
                         if isinstance(currentShortsID, str):
                             currentShortsID = ObjectId(currentShortsID)
 
-                        shortsData = shorts_collection.find_one(
+                        shortsData = await shorts_collection.find_one(
                             {"_id": currentShortsID, "visible": True},
                             {"genre": 0, "language": 0},
                         )
 
                         if shortsData:
-                            shortsData =  serialize_document(shortsData)
+                            shortsData = serialize_document(shortsData)
                             purchased = checkPurchasedVideoData(
                                 currentShortsID, userId
                             )
                             
-                            shortsReaction = userReactionLogs.find_one(
+                            shortsReaction = await userReactionLogs.find_one(
                                 {
                                     "shortsId": currentShortsID,
                                     "userId": ObjectId(userId),

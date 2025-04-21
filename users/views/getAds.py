@@ -17,7 +17,7 @@ async def getAds(request:Request, path, sessionType,token: str = Depends(get_cur
         adsList = []
         if not adsResponse:
             return JSONResponse({"msg": "no data "})
-        for ads in adsResponse:
+        async for ads in adsResponse:
 
             ads["_id"] = str(ads.get("_id"))
             adsList.append(ads)

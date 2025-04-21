@@ -11,7 +11,7 @@ async def getLikedVideo(request:Request,token: str = Depends(get_current_user),b
     body =  await request.json()
     userId = request.state.userId
     shortsId = body.get("shortsId")
-    user = users_collection.find_one(
+    user = await users_collection.find_one(
         {"_id": ObjectId(userId)},
     )
     if not user:
@@ -23,7 +23,7 @@ async def getLikedVideo(request:Request,token: str = Depends(get_current_user),b
             LikedVideosData = []
             for shortsId in user["LikedVideos"]:
                 
-                shortsData = shorts_collection.find_one(
+                shortsData = await shorts_collection.find_one(
                     {
                         "_id": ObjectId(shortsId),
                     },

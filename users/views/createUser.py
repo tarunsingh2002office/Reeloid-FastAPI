@@ -7,8 +7,8 @@ from helper_function.saveUserInDataBase import saveUserInDataBase
 
 async def createUser(request: Request,body: dict = Body(
         example={
-            "email": "a@gmail.com",
-            "name": "Mr. a",    
+            "email": "tarunsingh2002office@gmail.com",
+            "name": "Mr. Tarun Singh",    
             "password": "1234",
             "confirmPassword": "1234",
         }
@@ -36,11 +36,11 @@ async def createUser(request: Request,body: dict = Body(
             {"msg": "password and confirm password is not same"}, status_code=400
         )
     
-    session = client.start_session()
+    session = await client.start_session()
     session.start_transaction()
 
     try:
-        user = users_collection.find_one({"email": email})
+        user = await users_collection.find_one({"email": email})
 
         if user:
             return JSONResponse(
@@ -48,10 +48,10 @@ async def createUser(request: Request,body: dict = Body(
                 status_code=400,
             )
 
-        userCreated = saveUserInDataBase(
+        userCreated = await saveUserInDataBase(
             {"name": name, "email": email, "password": password, "session": session}
         )
-        emailSender({"name": name, "email": email})
+        await emailSender({"name": name, "email": email})
         session.commit_transaction()
         return JSONResponse(
             {"msg": "added user successfully", "success": True}, status_code=200

@@ -31,7 +31,7 @@ async def updatePassword(request:Request,token: str = Depends(get_current_user),
         )
     try:
         fifteen_min_ago = datetime.now(timezone.utc) - timedelta(minutes=15)
-        existing_Requests = forgotPasswordRequests.find_one(
+        existing_Requests = await forgotPasswordRequests.find_one(
             {
                 "isUsed": True,
                 "_id": ObjectId(passwordRequestId),
@@ -52,7 +52,7 @@ async def updatePassword(request:Request,token: str = Depends(get_current_user),
                 {"msg": "Password already changed with given request"}, status_code=400
             )
         hashedPassword = passwordEncryption(password)
-        updatedPassword = users_collection.find_one_and_update(
+        updatedPassword = await users_collection.find_one_and_update(
             {
                 "_id": ObjectId(userId),
             },
@@ -65,7 +65,7 @@ async def updatePassword(request:Request,token: str = Depends(get_current_user),
                 "email": updatedPassword.get("email"),
             }
         )
-        forgotPasswordRequests.update_one(
+        await forgotPasswordRequests.update_one(
             {"_id": ObjectId(passwordRequestId)}, {"$set": {"status": "Success"}}
         )
         return JSONResponse({"msg": "Password Changed Successfully"}, status_code=200)

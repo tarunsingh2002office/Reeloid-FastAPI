@@ -1,7 +1,7 @@
 import bcrypt
 
 
-def passwordEncryption(password):
+async def passwordEncryption(password):
     try:
         bytesPassword = password.encode("utf-8")
         salt = bcrypt.gensalt()#default rounds=12

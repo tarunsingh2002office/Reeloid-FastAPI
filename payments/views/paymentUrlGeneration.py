@@ -47,7 +47,7 @@ async def paymentUrlGeneration(request: Request, token: str = Depends(get_curren
             return JSONResponse({"msg": "invalid txn id"}, status_code=400)
 
         # Fetch package details from the database
-        mintsDetails = mintsPlanCollection.find_one({"_id": ObjectId(packageId)})
+        mintsDetails = await mintsPlanCollection.find_one({"_id": ObjectId(packageId)})
         if not mintsDetails:
             return JSONResponse({"msg": "invalid package id"}, status_code=400)
 
@@ -68,7 +68,7 @@ async def paymentUrlGeneration(request: Request, token: str = Depends(get_curren
 
         # Save transaction details in the database
         try:
-            paidMintsBuyerCollection.insert_one(
+            await paidMintsBuyerCollection.insert_one(
                 {
                     "userId": userId,
                     "txnid": txnid,

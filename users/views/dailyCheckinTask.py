@@ -14,9 +14,9 @@ async def dailyCheckInTask(request: Request, token: str = Depends(get_current_us
         if not checkInTask:
             return JSONResponse({"msg": "no task found"})
         taskList = []
-        for task in checkInTask:
+        async for task in checkInTask:
 
-            checkInPointsData = checkInPoints.find_one(
+            checkInPointsData = await checkInPoints.find_one(
                 {"_id": ObjectId(task["assignedTaskId"])}, {"_id": 0}
             )
             if checkInPointsData:

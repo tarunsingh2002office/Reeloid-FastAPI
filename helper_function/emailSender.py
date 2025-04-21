@@ -3,7 +3,7 @@ from email.mime.text import MIMEText
 from core.config import email_settings
 from email.mime.multipart import MIMEMultipart
 
-def emailSender(data):
+async def emailSender(data):
     name = data.get("name", "user")
     recipient_email = data.get("email")
     try:

@@ -8,7 +8,7 @@ from core.database import users_collection, genre_collection, languages_collecti
 async def getProfileDetails(request: Request, token: str = Depends(get_current_user)):
     try:
         userId = request.state.userId
-        userDetails = users_collection.find_one(
+        userDetails = await users_collection.find_one(
             {"_id": ObjectId(userId)},
             {"password": 0},
         )
@@ -21,18 +21,18 @@ async def getProfileDetails(request: Request, token: str = Depends(get_current_u
         genreList = []
         if "selectedGenre" in userDetails and userDetails["selectedGenre"]:
             for genreId in userDetails["selectedGenre"]:
-                genreData = genre_collection.find_one(
+                genreData = await genre_collection.find_one(
                     {"_id": ObjectId(genreId)}, {"_id": 1, "name": 1, "icon": 1}
                 )
                 if genreData:
-                    serialized_genreData = serialize_document(genreData)
+                    serialized_genreData =serialize_document(genreData)
                     genreList.append(serialized_genreData)
         userDetails["selectedGenre"] = genreList
 
         languageList = []
         if "selectedLanguages" in userDetails and userDetails["selectedLanguages"]:
             for languageId in userDetails["selectedLanguages"]:
-                languageData = languages_collection.find_one(
+                languageData = await languages_collection.find_one(
                     {"_id": ObjectId(languageId)}, {"_id": 1, "name": 1}
                 )
                 if languageData:

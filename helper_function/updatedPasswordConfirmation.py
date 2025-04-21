@@ -4,7 +4,7 @@ from email.mime.text import MIMEText
 from core.config import email_settings
 
 
-def updatedPasswordConfirmation(data):
+async def updatedPasswordConfirmation(data):
     """
     Sends a password change confirmation email using SMTP.
     """

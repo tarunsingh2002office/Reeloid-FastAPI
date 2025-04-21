@@ -9,7 +9,7 @@ async def getPackage(request:Request, token: str = Depends(get_current_user)):
         mintsPlanList = []
         if not mintsPlanResponse:
             return JSONResponse({"data": []}, status_code=200)
-        for plans in mintsPlanResponse:
+        async for plans in mintsPlanResponse:
             
             plans["_id"] = str(plans.get("_id"))
             mintsPlanList.append(plans)

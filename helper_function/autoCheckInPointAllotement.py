@@ -8,11 +8,11 @@ from celery import shared_task
 from datetime import datetime, timedelta
 
 @shared_task()
-def autoCheckInPointAllotement():
+async def autoCheckInPointAllotement():
 
     current_date = datetime.today().strftime("%d/%m/%Y")
     next_allocation_date = (datetime.today() + timedelta(days=7)).strftime("%d/%m/%Y")
-    session = client.start_session()
+    session = await client.start_session()
     session.start_transaction()
     try:
 
@@ -20,7 +20,7 @@ def autoCheckInPointAllotement():
             {"next_Allocation": current_date}, {"_id": 1, "assignedCheckInTask": 1}
         )
 
-        for user in users:
+        async for user in users:
       
             checkInResponse = (
                 checkInPoints.find({}, {"_id": 1})
@@ -28,7 +28,7 @@ def autoCheckInPointAllotement():
                 .limit(7)
             )
             allotedTask = []
-            for index, checkInData in enumerate(checkInResponse):
+            async for index, checkInData in enumerate(checkInResponse):
               
                 new_task = {
                     "assignedTaskId": str(checkInData.get("_id")),
@@ -41,7 +41,7 @@ def autoCheckInPointAllotement():
                 allotedTask.append(new_task)
 
             if allotedTask:
-                dailyCheckInTask_collection.insert_many(
+                await dailyCheckInTask_collection.insert_many(
                     allotedTask, session=session
                 )
                 users_collection.update_one(

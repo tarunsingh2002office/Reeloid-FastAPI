@@ -1,7 +1,7 @@
 import bcrypt
 
 
-def verifyPassword(password, hashedPassword):
+async def verifyPassword(password, hashedPassword):
     try:
         is_Verified = bcrypt.checkpw(
             password.encode("utf-8"), hashedPassword.encode("utf-8")

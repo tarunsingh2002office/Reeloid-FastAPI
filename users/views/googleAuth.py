@@ -41,7 +41,7 @@ async def googleAuth(request: Request, body: dict = Body(
                 raise ValueError("token is expired")
 
             email = idinfo.get("email")
-            userResponse = users_collection.find_one(
+            userResponse = await users_collection.find_one(
                 {"email": email}, {"password": 0}
             )
             name = idinfo.get("name")
@@ -66,7 +66,7 @@ async def googleAuth(request: Request, body: dict = Body(
                 saveUserInDataBase(
                     {"name": name, "email": email, "password": password}
                 )
-                getSavedUser = users_collection.find_one(
+                getSavedUser = await users_collection.find_one(
                     {"email": email}, {"password": 0}
                 )
                 if getSavedUser:

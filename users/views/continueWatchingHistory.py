@@ -32,14 +32,14 @@ async def continueWatchingHistorySaving(request:Request,token: str = Depends(get
         elif not timestamp:
             return JSONResponse({"msg": "timestamp is missing"}, status_code=400)
 
-        userDetails = users_collection.find_one(
+        userDetails = await users_collection.find_one(
             {"_id": ObjectId(userId)},
             {"password": 0},
         )
         if not userDetails:
             return JSONResponse({"msg": "no user found"}, status_code=400)
 
-        movieDetails = movies_collection.find_one(
+        movieDetails = await movies_collection.find_one(
             {
                 "_id": ObjectId(moviesId),
                 "shorts": ObjectId(currentShortsId),
@@ -50,7 +50,7 @@ async def continueWatchingHistorySaving(request:Request,token: str = Depends(get
                 {"msg": "no movie found or short not found"}, status_code=400
             )
 
-        result = continueWatching.update_one(
+        result = await continueWatching.update_one(
             {"userId": userId, "moviesId": moviesId},
             {
                 "$set": {

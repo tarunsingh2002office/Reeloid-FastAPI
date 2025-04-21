@@ -3,7 +3,7 @@ from email.mime.text import MIMEText
 from core.config import email_settings
 from email.mime.multipart import MIMEMultipart
 
-def forgotPasswordEmailSender(data):
+async def forgotPasswordEmailSender(data):
     name = data.get("name", "User")
     otp = data.get("otp")  # Ensure a password reset link is passed in the data
     email = data.get("email")

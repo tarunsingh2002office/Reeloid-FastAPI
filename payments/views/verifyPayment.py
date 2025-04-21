@@ -1,7 +1,6 @@
 import requests
-import hashlib
 from core.config import payu_settings
-from fastapi import Request, Body, Depends, Form
+from fastapi import Request, Depends, Form
 from fastapi.responses import JSONResponse
 from helper_function.apis_requests import get_current_user
 async def verifyPayment(request: Request

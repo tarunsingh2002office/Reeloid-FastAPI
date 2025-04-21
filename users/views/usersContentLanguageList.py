@@ -10,8 +10,8 @@ async def usersContentLanguageList(request: Request, token: str = Depends(get_cu
         languageArray = []
         languageList = languages_collection.find()
 
-        for language in languageList:
-            serialized_language = serialize_document  (language)  # Serialize the document
+        async for language in languageList:
+            serialized_language = serialize_document(language)  # Serialize the document
             languageArray.append(serialized_language)
 
         return JSONResponse({"languageList": languageArray}, status_code=200)
