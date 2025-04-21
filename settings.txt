@@ -187,3 +187,23 @@ It improves performance and scalability, especially for APIs with high traffic o
 So yes, async and await in FastAPI are server-side features that help handle more requests efficiently by not blocking the server while waiting for I/O operations to complete.
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+The error you are encountering is a TransientTransactionError in MongoDB. This occurs when a transaction is aborted due to transient issues, such as:
+
+- Concurrency conflicts: Multiple transactions are trying to modify the same document or resource simultaneously.
+- Network issues: Temporary network interruptions between the application and the MongoDB server.
+- Transaction timeouts: If a transaction takes too long to complete, MongoDB may abort it.
+- Session reuse: If the same session is reused across multiple requests or threads, it can lead to conflicts.
+
+How to fix it
+
+- Retry Logic for Transient Errors:- MongoDB recommends implementing a retry mechanism for transient errors. If a transaction is aborted, you can retry it.
+- Reduce Transaction Scope:- 
+
+
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Make index-
+ 
+- For user collection:- Email (unique index)

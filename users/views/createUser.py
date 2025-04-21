@@ -1,4 +1,6 @@
 import json
+import asyncio
+from pymongo.errors import OperationFailure
 from fastapi import Request,Body
 from fastapi.responses import JSONResponse
 from core.database import users_collection, client
@@ -36,32 +38,49 @@ async def createUser(request: Request,body: dict = Body(
             {"msg": "password and confirm password is not same"}, status_code=400
         )
     
-    session = await client.start_session()
-    session.start_transaction()
-
     try:
         user = await users_collection.find_one({"email": email})
-
-        if user:
-            return JSONResponse(
-                {"msg": "user is already registered with us with this email"},
-                status_code=400,
-            )
-
-        userCreated = await saveUserInDataBase(
-            {"name": name, "email": email, "password": password, "session": session}
-        )
-        await emailSender({"name": name, "email": email})
-        session.commit_transaction()
-        return JSONResponse(
-            {"msg": "added user successfully", "success": True}, status_code=200
-        )
     except Exception as err:
-        if session and session.in_transaction:
-            session.abort_transaction()
+        return JSONResponse({"msg": str(err)}, status_code=400)
+
+    if user:
         return JSONResponse(
-            {"msg": str(err), "success": False},
+            {"msg": "user is already registered with us with this email"},
             status_code=400,
         )
-    finally:
-        session.end_session()
+    
+    max_retries = 3
+    for attempt in range(max_retries):
+        session = await client.start_session()
+        session.start_transaction()
+        try:
+            # Save user in the database
+            userCreated = await saveUserInDataBase(
+                {"name": name, "email": email, "password": password, "session": session}
+            )
+            session.commit_transaction()
+
+            # Send email after committing the transaction
+            await emailSender({"name": name, "email": email})
+            return JSONResponse(
+                {"msg": "added user successfully", "success": True}, status_code=200
+            )
+        except OperationFailure as err:
+            if session.in_transaction:
+                session.abort_transaction()
+            if "TransientTransactionError" in str(err) and attempt < max_retries - 1:
+                await asyncio.sleep(0.1)  # Small delay before retrying
+                continue
+            return JSONResponse(
+                {"msg": "Database operation failed: " + str(err), "success": False},
+                status_code=500,
+            )
+        except Exception as err:
+            if session.in_transaction:
+                session.abort_transaction()
+            return JSONResponse(
+                {"msg": "An unexpected error occurred: " + str(err), "success": False},
+                status_code=500,
+            )
+        finally:
+            session.end_session()
