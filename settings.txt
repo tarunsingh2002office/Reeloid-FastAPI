@@ -219,3 +219,5 @@ mongosh "mongodb+srv://cluster0.rojd0fj.mongodb.net/" --apiVersion 1 --username 
 Make a ttl index uing cmd ->  db.forgotPasswordRequests.createIndex({createdTime:1},{expireAfterSeconds:86400})
 
 test on item -> db.forgotPasswordRequests.insertOne({data:'testing the ttl index', createdTime:new Date()})
+
+Keep backing up data -> mongodump --uri=mongodb+srv://appteam:<password>@cluster0.pjt16r2.mongodb.net/ --out=C:\Users\USER\Documents\Reeloid-APP-Data-Backup
