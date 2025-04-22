@@ -207,3 +207,15 @@ How to fix it
 Make index-
  
 - For user collection:- Email (unique index)
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+Mongo shell connection commands
+
+mongosh "mongodb+srv://cluster0.rojd0fj.mongodb.net/" --apiVersion 1 --username tarunsingh2002office
+
+
+Make a ttl index uing cmd ->  db.forgotPasswordRequests.createIndex({createdTime:1},{expireAfterSeconds:86400})
+
+test on item -> db.forgotPasswordRequests.insertOne({data:'testing the ttl index', createdTime:new Date()})
