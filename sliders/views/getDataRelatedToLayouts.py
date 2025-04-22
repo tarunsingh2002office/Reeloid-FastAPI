@@ -4,56 +4,32 @@ from fastapi.responses import JSONResponse
 from core.database import layouts_collection, movies_collection
 from helper_function.apis_requests import get_current_user
 
-async def getDataRelatedToLayOuts(
-    request: Request,
-    layoutID: str,
-    token: str = Depends(get_current_user)
-):
-    try:
-        # Aggregation pipeline to fetch a single visible layout's linked, visible movies
-        pipeline = [
-            {"$match": {"_id": ObjectId(layoutID), "visible": True}},
-            {"$project": {"linkedMovies": 1}},
-            {"$unwind": {"path": "$linkedMovies", "preserveNullAndEmptyArrays": True}},
-            {"$lookup": {
-                "from": movies_collection.name,
-                "let": {"movieId": "$linkedMovies"},
-                "pipeline": [
-                    {"$match": {"$expr": {"$and": [
-                        {"$eq": ["$_id", "$$movieId"]},
-                        {"$eq": ["$visible", True]}
-                    ]}}},
-                    {"$project": {"_id": 1, "fileLocation": 1, "name": 1, "screenType": 1}}
-                ],
-                "as": "movieData"
-            }},
-            {"$unwind": {"path": "$movieData", "preserveNullAndEmptyArrays": True}},
-            {"$group": {
-                "_id": "$_id",
-                "movies": {"$push": "$movieData"}
-            }},
-            {"$project": {
-                "_id": 0,
-                "movies": {
-                    "$map": {
-                        "input": "$movies",
-                        "as": "m",
-                        "in": {
-                            "_id": {"$toString": "$$m._id"},
-                            "fileLocation": "$$m.fileLocation",
-                            "name": "$$m.name",
-                            "screenType": "$$m.screenType"
-                        }
-                    }
-                }
-            }}
-        ]
+async def getDataRelatedToLayOuts(request: Request, layoutID: str, 
+                                   token: str = Depends(get_current_user)):
 
-        cursor = layouts_collection.aggregate(pipeline)
-        docs = await cursor.to_list(length=1)
-        movies_list = docs[0]["movies"] if docs else []
+    # Start timing for performance measurement
 
-        return JSONResponse({"moviesList": movies_list}, status_code=200)
+    # Fetch layout document with the specified layoutID and visible flag
+    result = await layouts_collection.find_one({"_id": ObjectId(layoutID), "visible": True})
+    movieObj = []
 
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    if result:
+        linkedMovies = result.get("linkedMovies", [])
+        movie_ids = [ObjectId(mid) for mid in linkedMovies]
+
+        # Fetch all movies at once using the $in operator
+        cursor = movies_collection.find(
+            {"_id": {"$in": movie_ids}, "visible": True},
+            {"fileLocation": 1, "name": 1, "screenType": 1}  # Only return necessary fields
+        )
+
+        # Convert cursor to list to fetch all at once and reduce iteration overhead
+        movies = await cursor.to_list(length=len(movie_ids))
+
+        # Process the movies and convert the _id field to a string
+        for movieData in movies:
+            movieData["_id"] = str(movieData["_id"])
+            movieObj.append(movieData)
+
+
+    return JSONResponse({"moviesList": movieObj})
