@@ -12,7 +12,7 @@ async def verifycodeEmailSender(data):
     if not email:
         raise ValueError("Error: no email found")
     try:
-        subject = "Reeloid: Password Reset Request"
+        subject = "Reeloid: Email Verification Code"
         from_email = email_settings.EMAIL_HOST_USER  # Replace with your email
         to_email = data.get("email")  # Recipient email
 
@@ -20,7 +20,7 @@ async def verifycodeEmailSender(data):
         text_content = f"""
         Hi {name},
 
-        We received a request to verity your account. Please use the verification code below:
+        We received a request to verity your account. Please use the verification code below (valid for 15 minutes only):
 
         {otp}
 
@@ -35,11 +35,11 @@ async def verifycodeEmailSender(data):
         <html>
         <body style="font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 20px;">
             <div style="max-width: 600px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);">
-                <h2 style="color: #D4AF37; text-align: center;">Reset Your Password</h2>
+                <h2 style="color: #D4AF37; text-align: center;">Email Verification</h2>
                 <p style="font-size: 16px; color: #333;">Dear {name},</p>
                 
                 <p style="font-size: 16px; color: #333;">
-                    We received a request to verify your account. Please use the verification code below:
+                    We received a request to verify your account. Please use the verification code below (valid for 15 minutes only):
                 </p>
 
                 <div style="text-align: center; margin: 20px 0;">

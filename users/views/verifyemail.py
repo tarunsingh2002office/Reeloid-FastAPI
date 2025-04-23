@@ -3,7 +3,7 @@ from fastapi.responses import JSONResponse
 from core.database import users_collection, verificationCode
 from helper_function.emailSender import emailSender
 from helper_function.saveUserInDataBase import saveUserInDataBase
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 
 async def verifyEmail(request: Request, body: dict = Body(
     example={
@@ -16,20 +16,24 @@ async def verifyEmail(request: Request, body: dict = Body(
         email = body.get("email")
         otp = body.get("otp")
 
+        # Validate that both email and OTP are provided
         if not email or not otp:
             return JSONResponse({"msg": "Email and OTP are required"}, status_code=400)
 
+        fifteen_min_ago = datetime.now(timezone.utc) - timedelta(minutes=15)
+        
         # Find the OTP record
         otp_record = await verificationCode.find_one({
             "email": email,
             "otp": int(otp),
-            "isUsed": False
+            "isUsed": False,
+            "createdTime": {"$gte": fifteen_min_ago},
         })
 
         if not otp_record:
             return JSONResponse({"msg": "Invalid or already used OTP"}, status_code=400)
 
-        # Check if user already exists
+        # Check if the user already exists
         existing_user = await users_collection.find_one({"email": email})
         if existing_user:
             return JSONResponse({"msg": "User already registered"}, status_code=400)
@@ -44,17 +48,19 @@ async def verifyEmail(request: Request, body: dict = Body(
             }}
         )
 
-        # Save user into users_collection
+        # Save the user into users_collection
         await saveUserInDataBase({
             "name": otp_record["name"],
             "email": otp_record["email"],
             "password": otp_record["password"]
         })
 
-        # Send welcome email
+        # Send the welcome email
         await emailSender({"name": otp_record["name"], "email": otp_record["email"]})
 
         return JSONResponse({"msg": "OTP verified and user created", "success": True}, status_code=200)
 
     except Exception as err:
+        # Log the error for better traceability
+        print(f"Error during verification: {err}")  # Consider using logging instead of print in production
         return JSONResponse({"msg": f"Verification failed: {err}", "success": False}, status_code=500)
