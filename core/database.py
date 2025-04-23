@@ -24,4 +24,4 @@ videoPurchasedLogs = db.videoPurchasedLogs
 userReactionLogs = db.userReactionLogs
 forgotPasswordRequests = db.forgotPasswordRequests
 continueWatching = db.continueWatching
-verificationCode = db.verificationCode
+verificationCode = db.verificationCodes
