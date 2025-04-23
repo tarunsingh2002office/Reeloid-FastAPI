@@ -221,3 +221,74 @@ Make a ttl index uing cmd ->  db.forgotPasswordRequests.createIndex({createdTime
 test on item -> db.forgotPasswordRequests.insertOne({data:'testing the ttl index', createdTime:new Date()})
 
 Keep backing up data -> mongodump --uri=mongodb+srv://appteam:<password>@cluster0.pjt16r2.mongodb.net/ --out=C:\Users\USER\Documents\Reeloid-APP-Data-Backup
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+Locust :- locust -f core/load_test.py
+
+Locust Users: Simulate real users interacting with your application.
+Tasks: Define the actions users will perform (e.g., GET, POST requests).
+JWT Token: For APIs requiring authentication, you can simulate login and store the token for subsequent requests.
+Weight: The weight is a number that determines the relative frequency of a task. It's a way to tell Locust how often you want a task to be executed compared to other tasks. Think of it like a probability distribution. If you have multiple tasks with different weights, Locust will randomly select a task to execute based on its weight.
+        For example, if the api/task has a weight of 3. This means that, on average, Locust will execute this task 3 times more often than a task with a weight of 1.
+
+How we can confirm Sequence of API Calls 
+
+2 wayus to do it:-
+1- using both the api in a single task -> example 
+(class UserBehavior(TaskSet):
+    def on_start(self):
+        """Simulate user creation and login to obtain JWT token."""
+        # Generate a unique email for each user
+        unique_email = f"user{random.randint(1000, 9999)}@example.com"
+        password = "password123"
+
+        # Step 1: Create a user
+        create_user_response = self.client.post(
+            "/user/register",
+            json={
+                "email": unique_email,
+                "name": "Test User",
+                "password": password,
+                "confirmPassword": password
+            }
+        )
+
+        if create_user_response.status_code == 200:
+            # Step 2: Sign in with the created user to obtain JWT token
+            sign_in_response = self.client.post(
+                "/user/signIn",
+                json={"email": unique_email, "password": password}
+            )
+            if sign_in_response.status_code == 200:
+                self.jwt_token = sign_in_response.json().get("token")
+            else:
+                self.jwt_token = None
+                # print(f"Sign-in failed: {sign_in_response.text}")
+        else:
+            self.jwt_token = None
+            # print(f"User creation failed: {create_user_response.text}")
+)
+issue with this is -> we did not get the Statistics data for individual APIs
+
+2- using state management. -> here we get  Statistics data for both the api but the sequence is not gureented
+Fro example ->(
+    @task(3)
+    def bookmark(self):
+        """Bookmark a video."""
+        self.bookmarked = True
+        self.client.post(
+            "/user/bookmark",
+            headers={"token": self.jwt_token},
+            json={"videoId": "abc123"}
+        )
+
+    @task(1)
+    def get_bookmark(self):
+        """Fetch bookmarks only if a video has been bookmarked."""
+        if getattr(self, "bookmarked", False):
+            self.client.get(
+                "/user/getBookmark",
+                headers={"token": self.jwt_token}
+            )    
+)
