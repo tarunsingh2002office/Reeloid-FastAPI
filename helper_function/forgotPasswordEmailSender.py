@@ -1,4 +1,4 @@
-import smtplib
+import aiosmtplib
 from email.mime.text import MIMEText
 from core.config import email_settings
 from email.mime.multipart import MIMEMultipart
@@ -6,15 +6,15 @@ from email.mime.multipart import MIMEMultipart
 async def forgotPasswordEmailSender(data):
     name = data.get("name", "User")
     otp = data.get("otp")  # Ensure a password reset link is passed in the data
-    email = data.get("email")
+    to_email = data.get("email")
     if not otp:
         raise ValueError("Error: Missing otp")
-    if not email:
+    if not to_email:
         raise ValueError("Error: no email found")
     try:
         subject = "Reeloid: Password Reset Request"
         from_email = email_settings.EMAIL_HOST_USER  # Replace with your email
-        to_email = data.get("email")  # Recipient email
+        
 
         # Plain text version (fallback)
         text_content = f"""
@@ -72,13 +72,16 @@ async def forgotPasswordEmailSender(data):
         message.attach(MIMEText(html_content, "html"))
 
         # Connect to the SMTP server
-        with smtplib.SMTP(email_settings.EMAIL_HOST, email_settings.EMAIL_PORT) as server:
-            server.starttls()  # Secure the connection
-            server.login(email_settings.EMAIL_HOST_USER, email_settings.EMAIL_HOST_PASSWORD)  # Login to the SMTP server
-            server.sendmail(from_email, [to_email], message.as_string())  # Send the email
+        await aiosmtplib.send(
+            message,
+            hostname=email_settings.EMAIL_HOST,
+            port=email_settings.EMAIL_PORT,
+            start_tls=True,
+            username=email_settings.EMAIL_HOST_USER,
+            password=email_settings.EMAIL_HOST_PASSWORD,
+        )
 
         return "Email sent successfully"
 
     except Exception as err:
-        # print(err)
         raise ValueError(f"Error sending email: {str(err)}")
