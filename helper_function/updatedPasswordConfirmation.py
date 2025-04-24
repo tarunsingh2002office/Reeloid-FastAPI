@@ -1,4 +1,4 @@
-import smtplib
+import aiosmtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from core.config import email_settings
@@ -18,7 +18,6 @@ async def updatedPasswordConfirmation(data):
         # Email details
         subject = "Reeloid: Your Password Was Successfully Changed"
         from_email = email_settings.EMAIL_HOST_USER  # Sender's email
-        to_email = recipient_email  # Recipient's email
 
         # Plain text version (fallback)
         text_content = f"""
@@ -60,17 +59,21 @@ async def updatedPasswordConfirmation(data):
         message = MIMEMultipart("alternative")
         message["Subject"] = subject
         message["From"] = from_email
-        message["To"] = to_email
+        message["To"] = recipient_email
 
         # Attach plain text and HTML content
         message.attach(MIMEText(text_content, "plain"))
         message.attach(MIMEText(html_content, "html"))
 
         # Connect to the SMTP server
-        with smtplib.SMTP(email_settings.EMAIL_HOST, email_settings.EMAIL_PORT) as server:
-            server.starttls()  # Secure the connection
-            server.login(email_settings.EMAIL_HOST_USER, email_settings.EMAIL_HOST_PASSWORD)  # Login to the SMTP server
-            server.sendmail(from_email, to_email, message.as_string())  # Send the email
+        await aiosmtplib.send(
+            message,
+            hostname=email_settings.EMAIL_HOST,
+            port=email_settings.EMAIL_PORT,
+            start_tls=True,
+            username=email_settings.EMAIL_HOST_USER,
+            password=email_settings.EMAIL_HOST_PASSWORD,
+        )
 
         return "Password change confirmation email sent."
 
