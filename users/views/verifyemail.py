@@ -1,87 +1,87 @@
-import json
 from fastapi import Request, Body
 from fastapi.responses import JSONResponse
-from core.database import verificationCode, users_collection, client
-from helper_function.emailSender import emailSender
-from helper_function.saveUserInDataBase import saveUserInDataBase
+from core.database import verificationEmail, users_collection
 from datetime import datetime, timedelta, timezone
+from helper_function.tokenCreator import tokenCreator
+from helper_function.saveUserInDataBase import saveUserInDataBase
+import hashlib
+
+def hash_password(password: str) -> str:
+    """Hashes the user's password using SHA-256."""
+    return hashlib.sha256(password.encode()).hexdigest()
 
 async def verifyEmail(request: Request, body: dict = Body(
     example={
-        "email": "tarunsingh2002office@gmail.com",
-        "otp": "123456"
+        "otp": "123456",
+        "email": "viveksingh5568@gmail.com",
+        "name": "vivek singh",
+        "password": "1234"
     }
 )):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
-
-    email = body.get("email")
+    body = await request.json()
     otp = body.get("otp")
+    email = body.get("email")
+    name = body.get("name")
+    password = body.get("password")
 
-    if not email or not otp:
-        return JSONResponse({"msg": "Email or OTP is missing"}, status_code=400)
-
-    session = None
+    # Ensure OTP, email, name, and password are provided
+    if not all([otp, email, name, password]):
+        return JSONResponse({"msg": "OTP, email, name, and password are required"}, status_code=400)
 
     try:
-        session = await client.start_session()
-        async with session.start_transaction():
+        # Calculate 15 minutes ago to validate OTP timestamp
+        fifteen_min_ago = datetime.now(timezone.utc) - timedelta(minutes=15)
 
-            otp_record = await verificationCode.find_one(
-                {"email": email, "otp": int(otp), "isUsed": False},
-                session=session
+        # Find the OTP record in the database and mark it as used if it's valid
+        existing_request = await verificationEmail.find_one_and_update(
+            {
+                "isUsed": False,
+                "otp": int(otp),
+                "email": email,
+                "status": "Pending",
+                "createdTime": {"$gte": fifteen_min_ago},  # Only consider OTPs within the last 15 minutes
+            },
+            {
+                "$set": {
+                    "isUsed": True,
+                    "status": "Verified",
+                }
+            },
+            projection={"_id": True},
+        )
+
+        # If no valid OTP record is found, return an error
+        if not existing_request:
+            return JSONResponse(
+                {"msg": "No valid OTP found for email verification within the last 15 minutes"},
+                status_code=400,
             )
 
-            if not otp_record:
-                return JSONResponse({"msg": "Invalid OTP or OTP already used"}, status_code=400)
+        # Hash the password before saving
+        hashed_password = hash_password(password)
 
-            created_time = otp_record.get("createdTime")
-            if not created_time:
-                return JSONResponse({"msg": "OTP record is invalid"}, status_code=400)
+        # Save the user's data to the main database
+        user_data = {
+            "name": name,
+            "email": email,
+            "password": hashed_password,
+        }
+        userCreated = await saveUserInDataBase(user_data)
 
-            if created_time.tzinfo is None:
-                created_time = created_time.replace(tzinfo=timezone.utc)
-
-            if datetime.now(timezone.utc) > created_time + timedelta(minutes=15):
-                return JSONResponse({"msg": "OTP has expired"}, status_code=400)
-
-            await verificationCode.update_one(
-                {"_id": otp_record["_id"]},
-                {"$set": {"isUsed": True, "status": "Verified"}},
-                session=session
-            )
-
-            user_data = {
-                "email": otp_record["email"],
-                "name": otp_record["name"],
-                "password": otp_record["password"],
-            }
-
-            await saveUserInDataBase(user_data)
-
-            try:
-                await emailSender({
-                    "name": otp_record["name"],
-                    "email": otp_record["email"]
-                })
-            except Exception as e:
-                print(f"Email sending failed: {e}")
-                raise
+        # Generate a token for the newly created user (if applicable)
+        token = await tokenCreator({
+            "otpId": str(existing_request["_id"]),
+            "id": str(userCreated.inserted_id)
+        })
 
         return JSONResponse(
-            {"msg": "OTP verified and user successfully registered."},
-            status_code=200
+            {
+                "msg": "Email verified and user created successfully",
+                "token": token
+            },
+            status_code=200,
         )
 
     except Exception as err:
-        print(f"Verification failed: {err}")
-        return JSONResponse({
-            "msg": f"Verification failed: {str(err)}",
-            "success": False
-        }, status_code=500)
-
-    finally:
-        if session:
-            await session.end_session()
+        # Catch unexpected errors and return a response
+        return JSONResponse({"msg": f"Verification failed: {str(err)}"}, status_code=500)

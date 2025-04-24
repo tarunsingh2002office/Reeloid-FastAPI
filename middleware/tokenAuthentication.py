@@ -8,7 +8,7 @@ class AccessTokenAuthenticatorMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
         # Define excluded paths
         excluded_paths = [
-            "/user/verifyotpEmail",
+            "/user/verifyEmail",
             "/user/verifyOtp",
             "/payment/success/",
             "/payment/error/",

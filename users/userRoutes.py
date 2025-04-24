@@ -28,6 +28,7 @@ from users.views.continueWatchingHistory import continueWatchingHistorySaving
 from users.views.unlikeVideo import unlikeVideo
 from users.views.verifyemail import verifyEmail
 
+
 user_router = APIRouter(prefix="/user", tags=["Users"])
 
 # User routes
@@ -58,7 +59,9 @@ user_router.add_api_route("/mintsPurchaseHistory",getUserMintPurchaseHistory, me
 user_router.add_api_route("/continueWatching", continueWatchingHistorySaving, methods=["POST"])
 user_router.add_api_route("/getContinueWatching", getUserWatchHistory, methods=["GET"])
 user_router.add_api_route("/unlikeVideo", unlikeVideo, methods=["POST"])
-user_router.add_api_route("/verifyotpEmail", verifyEmail, methods=["POST"])
+user_router.add_api_route("/verifyEmail", verifyEmail, methods=["POST"])
+
+
 
 
 # user_router.add_api_route("/register/", createUser, methods=["POST"],summary="Create a new user")

@@ -5,22 +5,24 @@ from email.mime.multipart import MIMEMultipart
 
 async def verifycodeEmailSender(data):
     name = data.get("name", "User")
-    otp = data.get("otp")  # Ensure a password reset link is passed in the data
+    otp = data.get("otp")  # Ensure OTP is passed in the data
     email = data.get("email")
+    
     if not otp:
-        raise ValueError("Error: Missing otp")
+        raise ValueError("Error: Missing OTP")
     if not email:
-        raise ValueError("Error: no email found")
+        raise ValueError("Error: No email found")
+    
     try:
         subject = "Reeloid: Email Verification Code"
-        from_email = email_settings.EMAIL_HOST_USER  # Replace with your email
-        to_email = data.get("email")  # Recipient email
+        from_email = email_settings.EMAIL_HOST_USER  # Sender email
+        to_email = email  # Recipient email
 
         # Plain text version (fallback)
         text_content = f"""
         Hi {name},
 
-        We received a request to verity your account. Please use the verification code below (valid for 15 minutes only):
+        We received a request to verify your account. Please use the verification code below (valid for 15 minutes only):
 
         {otp}
 
@@ -80,5 +82,4 @@ async def verifycodeEmailSender(data):
         return "Email sent successfully"
 
     except Exception as err:
-        # print(err)
         raise ValueError(f"Error sending email: {str(err)}")
