@@ -1,16 +1,15 @@
 import json
-import asyncio
 from bson import ObjectId
 from datetime import datetime
 from fastapi import Depends, Request, Body
 from fastapi.responses import JSONResponse
 from core.database import (
     dailyCheckInTask_collection,
+    users_collection,
     checkInPoints,
     client,
 )
 from helper_function.apis_requests import get_current_user
-from helper_function.addPointsToProfile import addPointsToProfile
 
 async def collectCheckInPoint(
     request: Request,
@@ -21,7 +20,6 @@ async def collectCheckInPoint(
         }
     )
 ):
-    max_retries = 3  
     try:
         body = await request.json()
         taskId = body.get("taskId")
@@ -32,7 +30,6 @@ async def collectCheckInPoint(
         if not userId:
             return JSONResponse({"msg": "Invalid user"}, status_code=404)
 
-        current_date_str = datetime.today().strftime("%d/%m/%Y")
         taskPresent = await dailyCheckInTask_collection.find_one(
             {
                 "_id": ObjectId(taskId),
@@ -42,7 +39,8 @@ async def collectCheckInPoint(
         )
         if not taskPresent:
             return JSONResponse({"msg": "Task not found"}, status_code=404)
-
+        
+        current_date_str = datetime.today().strftime("%d/%m/%Y")
         obtainable_str = taskPresent.get("obtainable")
         obtainable = datetime.strptime(obtainable_str, "%d/%m/%Y")
         current_date = datetime.strptime(current_date_str, "%d/%m/%Y")
@@ -52,11 +50,22 @@ async def collectCheckInPoint(
                 {"msg": "You cannot collect upcoming Task Points before its obtainable date"},
                 status_code=400,
             )
+        
+        taskPoints = await checkInPoints.find_one(
+                    {"_id": ObjectId(taskPresent.get("assignedTaskId"))},
+                    {"allocatedPoints": 1},
+                )
+        
+        if not taskPoints:
+            return JSONResponse(
+                {"msg": "Points data not found for this task"},
+                status_code=404,
+            )
+        
+        allotedPoints = taskPoints.get("allocatedPoints")
 
-        for attempt in range(max_retries):
-            session = await client.start_session()
-            session.start_transaction()
-            try:
+        async with await client.start_session() as session:
+            async def txn(sess):
                 taskIsPresent = await dailyCheckInTask_collection.find_one_and_update(
                     {
                         "_id": ObjectId(taskId),
@@ -64,48 +73,36 @@ async def collectCheckInPoint(
                         "status": "Pending",
                     },
                     {"$set": {"status": "Completed"}},
-                    session=session,
+                    session=sess,
                 )
                 if not taskIsPresent:
-                    session.abort_transaction()
-                    return JSONResponse(
-                        {"msg": "No task found or task already completed"},
-                        status_code=404,
+                    raise Exception("Not able to change the status of the task")  
+                
+                updateUser = await users_collection.update_one(
+                        {"_id": ObjectId(userId)}, 
+                        {
+                            "$inc": {"allocatedPoints": int(allotedPoints)}
+                        },  
+                        upsert=True,  
+                        session=sess,
                     )
 
-                taskPoints = await checkInPoints.find_one(
-                    {"_id": ObjectId(taskIsPresent.get("assignedTaskId"))},
-                    {"allocatedPoints": 1},
-                    session=session,
-                )
-                if not taskPoints:
-                    session.abort_transaction()
-                    return JSONResponse(
-                        {"msg": "Points data not found for this task"},
-                        status_code=404,
-                    )
+                if updateUser.acknowledged and updateUser.modified_count > 0:
+                    return {"success": True, "data": updateUser.raw_result}
+                else:
+                    raise ValueError("Failed to update points.")
 
-                await addPointsToProfile(
-                    userId, taskPoints.get("allocatedPoints"), session
-                )
-
-                session.commit_transaction()
-                return JSONResponse(
-                    {
-                        "msg": "Task completed successfully",
-                        "allocatedPoints": taskPoints.get("allocatedPoints"),
-                    },
-                    status_code=200,
-                )
+            try:
+                await session.with_transaction(txn)
             except Exception as err:
-                if session and session.in_transaction:
-                    session.abort_transaction()
-                if "TransientTransactionError" in str(err) and attempt < max_retries - 1:
-                    await asyncio.sleep(0.1)  # Small delay before retrying
-                    continue
-                return JSONResponse({"msg": f"Error: {str(err)}"}, status_code=500)
-            finally:
-                session.end_session()
+                return JSONResponse({"msg": f"Unexpected error: {str(err)}"}, status_code=500)
+        return JSONResponse(
+            {
+                "msg": "Task completed successfully",
+                "allocatedPoints": allotedPoints,
+            },
+            status_code=200,
+        )
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON format"}, status_code=400)
     except Exception as err:
