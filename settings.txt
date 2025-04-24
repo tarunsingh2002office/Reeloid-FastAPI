@@ -200,7 +200,18 @@ How to fix it
 - Retry Logic for Transient Errors:- MongoDB recommends implementing a retry mechanism for transient errors. If a transaction is aborted, you can retry it.
 - Reduce Transaction Scope:- 
 
+Transaction Handling with with_transaction:
 
+- Replaced session.start_transaction() with session.with_transaction(txn).
+- The with_transaction helper manages the entire transaction lifecycle, including retries for TransientTransactionError.
+- Motor's with_transaction automatically retries the transaction on transient errors, ensuring robustness without manual retry logic.
+
+Atomic Operations:
+
+- The transaction function txn now includes both the database insert and email sending.
+- If either operation fails, the transaction aborts automatically:
+    - Email Failure: Any exception in forgotPasswordEmailSender will abort the transaction, rolling back the OTP insertion.
+    - Database Failure: If the insert fails, the transaction aborts before sending the email.
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -221,3 +232,60 @@ Make a ttl index uing cmd ->  db.forgotPasswordRequests.createIndex({createdTime
 test on item -> db.forgotPasswordRequests.insertOne({data:'testing the ttl index', createdTime:new Date()})
 
 Keep backing up data -> mongodump --uri=mongodb+srv://appteam:<password>@cluster0.pjt16r2.mongodb.net/ --out=C:\Users\USER\Documents\Reeloid-APP-Data-Backup
+
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+result = await collection.insert_many() / .insert_one()
+if not result.acknowledged:
+    handle_unacknowledged_many()
+elif result.inserted_ids: / result.inserted_id
+
+
+upd = await collection.update_one() / .update_many()
+if not upd.acknowledged:
+    handle_unacknowledged_update()
+elif result.matched_count == 0:
+    # No document matched the filter
+elif upd.modified_count == 0:
+    # Document matched but data was already up-to-date (no change)
+else:
+    # at least one document field was updated
+    handle_update_success()
+
+
+del_res = await collection.delete_one() / delete_many
+if not del_res.acknowledged:
+    handle_unacknowledged_delete()
+elif del_res.deleted_count == 0:
+    # no document was removed
+    handle_none_deleted()
+else:
+    handle_delete_success()
+
+
+doc = await collection.find_one()
+if not doc:
+    handle_not_found()
+else:
+    handle_found(doc)
+
+cursor = collection.find(filter)
+if await cursor.fetch_next:
+    # ddocument found
+else:
+    # No documents found
+
+result = await collection.replace_one(filter, replacement)
+if result.matched_count == 0:
+    # No document matched the filter
+
+
+updated = await collection.find_one_and_update()
+if not updated:
+    # No match → nothing updated
+
+
+Note :- acknowledged Flag:
+Always check result.acknowledged if you’re using a non-default write concern. If acknowledged=False, MongoDB did not confirm the write (e.g., w=0), and counts like modified_count will be None.
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

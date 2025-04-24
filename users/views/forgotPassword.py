@@ -1,6 +1,5 @@
 import json
 import random
-import asyncio
 from fastapi import Request, Body
 from fastapi.responses import JSONResponse
 from datetime import datetime, timezone, timedelta
@@ -12,7 +11,6 @@ async def forgotPassword(request: Request, body: dict = Body(
             "email": "a@gmail.com",
         },
     )):
-    max_retries = 3  
     try:
         data = await request.json()
         email = data.get("email")
@@ -40,19 +38,19 @@ async def forgotPassword(request: Request, body: dict = Body(
 
         otp = random.randint(100000, 999999)
 
-        for attempt in range(max_retries):
-            session = await client.start_session()
-            session.start_transaction()
-            try:
-                await forgotPasswordRequests.insert_one(
+        async with await client.start_session() as session:
+            async def txn(sess):
+                forgotPasswordInsertionResult =await forgotPasswordRequests.insert_one(
                     {
                         "userId": existing_user["_id"],
                         "createdTime": datetime.now(timezone.utc),
                         "otp": otp,
                         "isUsed": False,
                     },
-                    session=session,
+                    session=sess
                 )
+                if not forgotPasswordInsertionResult.acknowledged:
+                    raise Exception("OTP db insertion failed")  # Proper error handling
                 await forgotPasswordEmailSender(
                     {
                         "name": existing_user["name"],
@@ -60,23 +58,25 @@ async def forgotPassword(request: Request, body: dict = Body(
                         "email": email,
                     }
                 )
-                
-                session.commit_transaction()
-
-                return JSONResponse(
-                    {"msg": "Password reset request sent successfully. Please check your email inbox."},
-                    status_code=200,
-                )
+            try:
+                await session.with_transaction(txn)
             except Exception as err:
-                if session and session.in_transaction:
-                    session.abort_transaction()
-                if "TransientTransactionError" in str(err) and attempt < max_retries - 1:
-                    await asyncio.sleep(0.1)  
-                    continue
-                return JSONResponse({"msg": f"Error: {str(err)}"}, status_code=500)
-            finally:
-                session.end_session()
+                return JSONResponse(
+                    {"msg": f"Error sending password reset request: {err}"},
+                    status_code=500,
+                )
+        return JSONResponse(
+            {"msg": "Password reset request sent successfully. Please check your email inbox."},
+            status_code=200,
+        )    
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON format"}, status_code=400)
     except Exception as err:
         return JSONResponse({"msg": f"Unexpected error: {str(err)}"}, status_code=500)
+    
+"""
+Conditions Met:
+DB Insert Success + Email Failure: Transaction aborts → OTP removed.
+DB Insert Success + Email Success: Transaction commits → OTP stored.
+DB Insert Failure: Transaction aborts → Email not sent.
+"""
