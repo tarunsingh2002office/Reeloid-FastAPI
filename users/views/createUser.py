@@ -1,86 +1,94 @@
 import json
-import asyncio
-from pymongo.errors import OperationFailure
-from fastapi import Request,Body
+import random
+import hashlib
+from fastapi import Request, Body
 from fastapi.responses import JSONResponse
-from core.database import users_collection, client
-from helper_function.emailSender import emailSender
-from helper_function.saveUserInDataBase import saveUserInDataBase
+from datetime import datetime, timezone
+from core.database import verificationEmail, users_collection
+from helper_function.verifycodeEmailSender import verifycodeEmailSender
+import logging
 
-async def createUser(request: Request,body: dict = Body(
-        example={
-            "email": "tarunsingh2002office@gmail.com",
-            "name": "Mr. Tarun Singh",    
-            "password": "1234",
-            "confirmPassword": "1234",
-        }
-    )):
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+
+def generate_otp():
+    return random.randint(100000, 999999)
+
+def hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode()).hexdigest()
+
+async def createUser(request: Request, body: dict = Body(
+    example={
+        "email": "viveksingh5568@gmail.com",
+        "name": "Vivek Singh",
+        "password": "1234",
+        "confirmPassword": "1234"
+    }
+)):
     try:
-        body =  await request.json()
+        body = await request.json()
     except json.JSONDecodeError:
         return JSONResponse({"msg": "Invalid JSON"}, status_code=400)
-    
-    email = body.get("email")
-    name = body.get("name")
-    password = body.get("password")
-    confirmPassword = body.get("confirmPassword")
 
-    if not name:
-        return JSONResponse({"msg": "name is not present"}, status_code=400)
+    email = body.get("email", "").strip().lower()
+    name = body.get("name", "").strip()
+    password = body.get("password", "")
+    confirmPassword = body.get("confirmPassword", "")
+
+    # Validate fields
     if not email:
-        return JSONResponse({"msg": "email is not present"}, status_code=400)
-    if not password:
-        return JSONResponse({"msg": "password is not present"}, status_code=400)
-    if not confirmPassword:
-        return JSONResponse({"msg": "confirm password is not present"}, status_code=400)
+        return JSONResponse({"msg": "Email is required"}, status_code=400)
+    if not name:
+        return JSONResponse({"msg": "Name is required"}, status_code=400)
+    if not password or not confirmPassword:
+        return JSONResponse({"msg": "Password and confirm password are required"}, status_code=400)
     if password != confirmPassword:
-        return JSONResponse(
-            {"msg": "password and confirm password is not same"}, status_code=400
-        )
-    
+        return JSONResponse({"msg": "Password and confirm password do not match"}, status_code=400)
+
+    # Check if user already exists (case insensitive)
+    existing_user = await users_collection.find_one({"email": email})
+    if existing_user:
+        return JSONResponse({"msg": "User with this email already exists"}, status_code=400)
+
+    # Generate OTP
+    otp = generate_otp()
+    current_time = datetime.now(timezone.utc)
+
+    # Upsert OTP in verificationEmail collection
     try:
-        user = await users_collection.find_one({"email": email})
-    except Exception as err:
-        return JSONResponse({"msg": str(err)}, status_code=400)
-
-    if user:
-        return JSONResponse(
-            {"msg": "user is already registered with us with this email"},
-            status_code=400,
+        update_result = await verificationEmail.update_one(
+            {"email": email},
+            {
+                "$set": {
+                    "otp": otp,
+                    "createdTime": current_time,
+                    "isUsed": False,
+                    "status": "Pending"
+                }
+            },
+            upsert=True
         )
-    
-    max_retries = 3
-    for attempt in range(max_retries):
-        session = await client.start_session()
-        session.start_transaction()
-        try:
-            # Save user in the database
-            userCreated = await saveUserInDataBase(
-                {"name": name, "email": email, "password": password, "session": session}
-            )
-            session.commit_transaction()
+        if update_result.upserted_id:
+            logging.info(f"New OTP document inserted: {update_result.upserted_id}")
+        else:
+            logging.info(f"OTP updated for existing email: {email}")
+    except Exception as e:
+        logging.error(f"Error upserting OTP into database: {str(e)}")
+        return JSONResponse({"msg": "Failed to store OTP in database"}, status_code=500)
 
-            # Send email after committing the transaction
-            await emailSender({"name": name, "email": email})
-            return JSONResponse(
-                {"msg": "added user successfully", "success": True}, status_code=200
-            )
-        except OperationFailure as err:
-            if session.in_transaction:
-                session.abort_transaction()
-            if "TransientTransactionError" in str(err) and attempt < max_retries - 1:
-                await asyncio.sleep(0.1)  # Small delay before retrying
-                continue
-            return JSONResponse(
-                {"msg": "Database operation failed: " + str(err), "success": False},
-                status_code=500,
-            )
-        except Exception as err:
-            if session.in_transaction:
-                session.abort_transaction()
-            return JSONResponse(
-                {"msg": "An unexpected error occurred: " + str(err), "success": False},
-                status_code=500,
-            )
-        finally:
-            session.end_session()
+    # Send OTP via email
+    try:
+        await verifycodeEmailSender({
+            "name": name,
+            "otp": otp,
+            "email": email
+        })
+        logging.info(f"OTP sent to {email}")
+    except Exception as e:
+        logging.error(f"Error sending email: {str(e)}")
+        return JSONResponse({"msg": "Failed to send OTP email"}, status_code=500)
+
+    return JSONResponse({
+        "msg": "Verification OTP sent to email",
+        "email": email
+    }, status_code=200)
