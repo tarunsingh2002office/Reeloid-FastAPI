@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from fastapi import Request, Body
 from fastapi.responses import JSONResponse
-from core.database import users_collection
+from core.database import users_collection, verificationEmail
 from helper_function.verifyPassword import verifyPassword
 from helper_function.updateLoginStatus import updateLoginStatus
 
@@ -33,25 +33,21 @@ async def signIn(request: Request, body: dict = Body(
     if not password:
         return JSONResponse({"msg": "password is not present"}, status_code=400)
 
-    # Check if the user exists
     userResponse = await users_collection.find_one({"email": email})
 
     if not userResponse:
+        verification_data = await verificationEmail.find_one({"email": email, "isUsed": False})
+        if verification_data:
+            return JSONResponse(
+                {
+                    "msg": "Email is not verified. Please verify your email first.",
+                    "success": False,
+                },
+                status_code=400,
+            )
         return JSONResponse(
             {
                 "msg": "No user found with this email",
-                "success": False,
-            },
-            status_code=400,
-        )
-    
-    # Check if user has verified their email via OTP
-    verification_data = await verificationCode.find_one({"email": email, "status": "Verified"})
-    
-    if not verification_data:
-        return JSONResponse(
-            {
-                "msg": "Email is not verified. Please verify your email first.",
                 "success": False,
             },
             status_code=400,
