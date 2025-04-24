@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 from fastapi import Request, Body
 from fastapi.responses import JSONResponse
-from core.database import users_collection, verificationCode
+from core.database import users_collection
 from helper_function.verifyPassword import verifyPassword
 from helper_function.updateLoginStatus import updateLoginStatus
 
