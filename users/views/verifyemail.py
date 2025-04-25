@@ -20,35 +20,45 @@ async def verifyEmail(request: Request, body: dict = Body(
         if not otp:
             return JSONResponse({"msg": "OTP is required"}, status_code=400)
         elif not email:
-            return JSONResponse({"msg": "email is required"}, status_code=400)
+            return JSONResponse({"msg": "Email is required"}, status_code=400)
 
         fifteen_min_ago = datetime.now(timezone.utc) - timedelta(minutes=15)
 
-        # Find the OTP record in the database and mark it as used if it's valid
+        # Step 1: Check if there is any recent OTP for this email
+        recent_otp_record = await verificationEmail.find_one({
+            "email": email,
+            "isUsed": False,
+            "createdTime": {"$gte": fifteen_min_ago},
+        })
+
+        if not recent_otp_record:
+            return JSONResponse(
+                {"msg": "OTP has expired or not requested. Please request a new one."},
+                status_code=400
+            )
+
+        # Step 2: Check if the OTP matches
+        if recent_otp_record["otp"] != int(otp):
+            return JSONResponse(
+                {"msg": "Wrong OTP entered, please provide a valid OTP."},
+                status_code=400
+            )
+
+        # Step 3: Mark OTP as used and proceed
         existing_request = await verificationEmail.find_one_and_update(
             {
-                "isUsed": False,
-                "otp": int(otp),
-                "email": email,
-                "createdTime": {"$gte": fifteen_min_ago},
+                "_id": recent_otp_record["_id"]
             },
             {
-                "$set": {
-                    "isUsed": True
-                }
+                "$set": {"isUsed": True}
             },
-            projection={"name":1,"password":1},
+            projection={"name": 1, "password": 1},
         )
 
-        # If no valid OTP record is found, return an error
-        if not existing_request:
-            return JSONResponse(
-                {"msg": "No valid OTP found for email verification within the last 15 minutes"},
-                status_code=400,
-            )
         name = existing_request.get("name")
         password = existing_request.get("password")
-        # Save the user's data to the main database
+
+        # Step 4: Save the user's data to the main database
         async with await client.start_session() as session:
             async def txn(sess):
                 user_data = {
@@ -66,10 +76,13 @@ async def verifyEmail(request: Request, body: dict = Body(
                     "id": str(userCreated.inserted_id)
                 })
                 return token
+
             try:
-                token= await session.with_transaction(txn)
+                token = await session.with_transaction(txn)
             except Exception as err:
                 return JSONResponse({"msg": f"Verification failed: {str(err)}"}, status_code=500)
+
+        # Step 5: Return success response with token
         return JSONResponse(
             {
                 "msg": "Email verified and user created successfully",
