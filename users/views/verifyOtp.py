@@ -5,7 +5,7 @@ from datetime import datetime, timedelta, timezone
 from helper_function.tokenCreator import tokenCreator
 async def verifyOtp(request:Request, body: dict = Body(
         example={
-            "otp": "1234"
+            "otp": "123456"
         },
     )):
     body = await request.json()
