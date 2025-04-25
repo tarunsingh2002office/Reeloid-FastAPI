@@ -49,15 +49,18 @@ async def createUser(request: Request, body: dict = Body(
         async with await client.start_session() as session:
             async def txn(sess):
 
-                update_result = await verificationEmail.insert_one(
+                update_result = await verificationEmail.update_one(
+                    {"email": email},
                     {
-                        "email": email,
-                        "name": name,
-                        "password": password,
-                        "otp": otp,
-                        "createdTime": datetime.now(timezone.utc),
-                        "isUsed": False
+                        "$set": {
+                            "name": name,
+                            "password": password,
+                            "otp": otp,
+                            "createdTime": datetime.now(timezone.utc),
+                            "isUsed": False
+                        }
                     },
+                    upsert=True,
                     session=sess
                 )
                 
