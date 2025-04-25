@@ -9,7 +9,7 @@ from helper_function.saveUserInDataBase import saveUserInDataBase
 async def verifyEmail(request: Request, body: dict = Body(
     example={
         "otp": "123456",
-        "email": "tarunsingh2002office@gmail.com"
+        "email": "tarunsingh2002office@gmail.com/viveksingh5568@gmail.com"
     }
 )):
     try:

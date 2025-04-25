@@ -8,8 +8,8 @@ from helper_function.updatedPasswordConfirmation import updatedPasswordConfirmat
 from helper_function.apis_requests import  get_current_user
 async def updatePassword(request:Request,token: str = Depends(get_current_user),body: dict = Body(
         example={
-            "password": "1234",
-            "confirmPassword": "1234"
+            "password": "123456",
+            "confirmPassword": "123456"
         },
     )):
     body = await request.json()
