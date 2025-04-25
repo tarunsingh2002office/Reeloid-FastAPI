@@ -1,6 +1,6 @@
 from fastapi import Request, Body
 from fastapi.responses import JSONResponse
-from core.database import verificationEmail, client
+from core.database import verificationEmail, client, users_collection
 from datetime import datetime, timedelta, timezone
 from helper_function.sendEmail import sendEmail
 from helper_function.tokenCreator import tokenCreator
@@ -22,42 +22,37 @@ async def verifyEmail(request: Request, body: dict = Body(
         elif not email:
             return JSONResponse({"msg": "email is required"}, status_code=400)
         
-        records_cursor = verificationEmail.find({"email": email}, {"_id":0})
-        if not await records_cursor.fetch_next:
+        userExist = await users_collection.find_one({"email": email})
+
+        if userExist:
+            return JSONResponse({"msg": "User with this email already exists. No verification required"}, status_code=400)
+        
+        record = await verificationEmail.find_one({"email": email}, {"_id":0})
+        if not record:
             return JSONResponse(
                 {"msg": "No valid OTP found for given email"},
                 status_code=400,
             )
 
         fifteen_min_ago = datetime.now(timezone.utc) - timedelta(minutes=15)
-        flag = False
-        async for record in records_cursor:
-            if record.get("otp") == int(otp):
-                record_time = record.get("createdTime")
-
-                if record_time.tzinfo is None:
-                    record_time = record_time.replace(tzinfo=timezone.utc)  
-
-                if record_time  >= fifteen_min_ago and record.get("isUsed") == False:
-                    flag = True
-                    break
-                elif record_time  < fifteen_min_ago:
-                    return JSONResponse(
-                        {"msg": "OTP has expired"},
-                        status_code=400,
-                    )
-                else:
-                    return JSONResponse(
+        record_time = record.get("createdTime")
+        record_time = record_time.replace(tzinfo=timezone.utc)
+        if record.get("otp") != int(otp):
+            return JSONResponse(
+                {"msg": "Wrong OTP Entered"},
+                status_code=400,
+            )  
+        elif record.get("isUsed") == True:
+            return JSONResponse(
                         {"msg": "OTP has already been used"},
                         status_code=400,
-                    )
-
-        if not flag:
+                    )          
+        elif record_time  < fifteen_min_ago:
             return JSONResponse(
-                {"msg": "No valid OTP found for email verification within the last 15 minutes"},
+                {"msg": "OTP has expired"},
                 status_code=400,
             )
-        
+               
         # Find the OTP record in the database and mark it as used if it's valid
         existing_request = await verificationEmail.find_one_and_update(
             {
@@ -77,7 +72,7 @@ async def verifyEmail(request: Request, body: dict = Body(
         # If no valid OTP record is found, return an error
         if not existing_request:
             return JSONResponse(
-                {"msg": "No valid OTP found for email verification within the last 15 minutes"},
+                {"msg": "Fail to verify email, please try again later"},
                 status_code=400,
             )
         name = existing_request.get("name")
