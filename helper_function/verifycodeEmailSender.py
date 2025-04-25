@@ -1,4 +1,4 @@
-import smtplib
+import aiosmtplib
 from email.mime.text import MIMEText
 from core.config import email_settings
 from email.mime.multipart import MIMEMultipart
@@ -6,17 +6,16 @@ from email.mime.multipart import MIMEMultipart
 async def verifycodeEmailSender(data):
     name = data.get("name", "User")
     otp = data.get("otp")  # Ensure OTP is passed in the data
-    email = data.get("email")
+    to_email = data.get("email")
     
     if not otp:
         raise ValueError("Error: Missing OTP")
-    if not email:
+    if not to_email:
         raise ValueError("Error: No email found")
     
     try:
         subject = "Reeloid: Email Verification Code"
         from_email = email_settings.EMAIL_HOST_USER  # Sender email
-        to_email = email  # Recipient email
 
         # Plain text version (fallback)
         text_content = f"""
@@ -74,10 +73,14 @@ async def verifycodeEmailSender(data):
         message.attach(MIMEText(html_content, "html"))
 
         # Connect to the SMTP server
-        with smtplib.SMTP(email_settings.EMAIL_HOST, email_settings.EMAIL_PORT) as server:
-            server.starttls()  # Secure the connection
-            server.login(email_settings.EMAIL_HOST_USER, email_settings.EMAIL_HOST_PASSWORD)  # Login to the SMTP server
-            server.sendmail(from_email, [to_email], message.as_string())  # Send the email
+        await aiosmtplib.send(
+            message,
+            hostname=email_settings.EMAIL_HOST,
+            port=email_settings.EMAIL_PORT,
+            start_tls=True,
+            username=email_settings.EMAIL_HOST_USER,
+            password=email_settings.EMAIL_HOST_PASSWORD,
+        )
 
         return "Email sent successfully"
 
