@@ -6,7 +6,7 @@ from core.config import google_settings
 from core.database import users_collection
 from google.auth.transport import requests
 from fastapi.responses import JSONResponse
-from helper_function.emailSender import emailSender
+from helper_function.sendEmail import sendEmail
 from helper_function.saveUserInDataBase import saveUserInDataBase
 from helper_function.updateLoginStatus import updateLoginStatus
 from helper_function.serialize_mongo_document import serialize_document
@@ -76,7 +76,7 @@ async def googleAuth(request: Request, body: dict = Body(
                     updatedUserResponse, token = await updateLoginStatus(
                         getSavedUser, fcmtoken, deviceType
                     )
-                    await emailSender({"name": name, "email": email, "type": "direct"})
+                    await sendEmail({"name": name, "email": email, "type": "direct"}, "registration")
                     return JSONResponse(
                         {
                             "msg": "google authentication done......registered a new account",

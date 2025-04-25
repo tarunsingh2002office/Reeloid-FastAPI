@@ -4,7 +4,7 @@ from fastapi import Request, Body
 from fastapi.responses import JSONResponse
 from datetime import datetime, timezone, timedelta
 from core.database import forgotPasswordRequests, users_collection, client
-from helper_function.forgotPasswordEmailSender import forgotPasswordEmailSender
+from helper_function.sendEmail import sendEmail
 
 async def forgotPassword(request: Request, body: dict = Body(
         example={
@@ -51,12 +51,12 @@ async def forgotPassword(request: Request, body: dict = Body(
                 )
                 if not forgotPasswordInsertionResult.acknowledged:
                     raise Exception("OTP db insertion failed")  # Proper error handling
-                await forgotPasswordEmailSender(
+                await sendEmail(
                     {
                         "name": existing_user["name"],
                         "otp": otp,
                         "email": email,
-                    }
+                    }, "forgot_password"
                 )
             try:
                 await session.with_transaction(txn)

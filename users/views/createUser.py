@@ -4,7 +4,7 @@ from fastapi import Request, Body
 from fastapi.responses import JSONResponse
 from datetime import datetime, timezone, timedelta
 from core.database import verificationEmail, users_collection, client
-from helper_function.verifycodeEmailSender import verifycodeEmailSender
+from helper_function.sendEmail import sendEmail
 
 async def createUser(request: Request, body: dict = Body(
     example={
@@ -49,26 +49,29 @@ async def createUser(request: Request, body: dict = Body(
         async with await client.start_session() as session:
             async def txn(sess):
 
-                update_result = await verificationEmail.insert_one(
+                update_result = await verificationEmail.update_one(
+                    {"email": email},
                     {
-                        "email": email,
-                        "name": name,
-                        "password": password,
-                        "otp": otp,
-                        "createdTime": datetime.now(timezone.utc),
-                        "isUsed": False
+                        "$set": {
+                            "name": name,
+                            "password": password,
+                            "otp": otp,
+                            "createdTime": datetime.now(timezone.utc),
+                            "isUsed": False
+                        }
                     },
+                    upsert=True,
                     session=sess
                 )
                 
                 if not update_result.acknowledged:
                     raise Exception("OTP db insertion failed")  # Proper error handling
                 
-                await verifycodeEmailSender({
+                await sendEmail({
                     "name": name,
                     "otp": otp,
                     "email": email
-                })
+                }, "verification")
             try:
                 await session.with_transaction(txn)
             except Exception as err:

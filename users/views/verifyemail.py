@@ -1,8 +1,8 @@
 from fastapi import Request, Body
 from fastapi.responses import JSONResponse
-from core.database import verificationEmail, client
+from core.database import verificationEmail, client, users_collection
 from datetime import datetime, timedelta, timezone
-from helper_function.emailSender import emailSender
+from helper_function.sendEmail import sendEmail
 from helper_function.tokenCreator import tokenCreator
 from helper_function.saveUserInDataBase import saveUserInDataBase
 
@@ -21,9 +21,38 @@ async def verifyEmail(request: Request, body: dict = Body(
             return JSONResponse({"msg": "OTP is required"}, status_code=400)
         elif not email:
             return JSONResponse({"msg": "email is required"}, status_code=400)
+        
+        userExist = await users_collection.find_one({"email": email})
+
+        if userExist:
+            return JSONResponse({"msg": "User with this email already exists. No verification required"}, status_code=400)
+        
+        record = await verificationEmail.find_one({"email": email}, {"_id":0})
+        if not record:
+            return JSONResponse(
+                {"msg": "No valid OTP found for given email"},
+                status_code=400,
+            )
 
         fifteen_min_ago = datetime.now(timezone.utc) - timedelta(minutes=15)
-
+        record_time = record.get("createdTime")
+        record_time = record_time.replace(tzinfo=timezone.utc)
+        if record.get("otp") != int(otp):
+            return JSONResponse(
+                {"msg": "Wrong OTP Entered"},
+                status_code=400,
+            )  
+        elif record.get("isUsed") == True:
+            return JSONResponse(
+                        {"msg": "OTP has already been used"},
+                        status_code=400,
+                    )          
+        elif record_time  < fifteen_min_ago:
+            return JSONResponse(
+                {"msg": "OTP has expired"},
+                status_code=400,
+            )
+               
         # Find the OTP record in the database and mark it as used if it's valid
         existing_request = await verificationEmail.find_one_and_update(
             {
@@ -43,7 +72,7 @@ async def verifyEmail(request: Request, body: dict = Body(
         # If no valid OTP record is found, return an error
         if not existing_request:
             return JSONResponse(
-                {"msg": "No valid OTP found for email verification within the last 15 minutes"},
+                {"msg": "Fail to verify email, please try again later"},
                 status_code=400,
             )
         name = existing_request.get("name")
@@ -59,8 +88,8 @@ async def verifyEmail(request: Request, body: dict = Body(
                 }
                 userCreated = await saveUserInDataBase(user_data)
 
-                await emailSender({"name": name, "email": email})
-
+                ans = await sendEmail({"name": name, "email": email}, "registration")
+                print(ans)
                 token = await tokenCreator({
                     "otpId": str(existing_request["_id"]),
                     "id": str(userCreated.inserted_id)
