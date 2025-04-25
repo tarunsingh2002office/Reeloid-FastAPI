@@ -40,13 +40,16 @@ async def forgotPassword(request: Request, body: dict = Body(
 
         async with await client.start_session() as session:
             async def txn(sess):
-                forgotPasswordInsertionResult =await forgotPasswordRequests.insert_one(
+                forgotPasswordInsertionResult =await forgotPasswordRequests.update_one(
+                    {"userId": existing_user["_id"]},
                     {
-                        "userId": existing_user["_id"],
-                        "createdTime": datetime.now(timezone.utc),
-                        "otp": otp,
-                        "isUsed": False,
+                        "$set": {
+                            "createdTime": datetime.now(timezone.utc),
+                            "otp": otp,
+                            "isUsed": False
+                        }
                     },
+                    upsert=True,
                     session=sess
                 )
                 if not forgotPasswordInsertionResult.acknowledged:
