@@ -35,7 +35,7 @@ app.add_middleware(
 app.add_middleware(AllowedHostsMiddleware, allowed_hosts)
 # Add the custom middleware
 app.add_middleware(AccessTokenAuthenticatorMiddleware)
-app.add_middleware(ExecutionTimeMiddleware)
+#app.add_middleware(ExecutionTimeMiddleware)
 # Include all routes
 app.include_router(api_router)
 
